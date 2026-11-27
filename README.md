@@ -18,10 +18,11 @@ Executive overview, Messenger, Tamasha, Search, Traffic and Revenue, Support, Qu
 
 ## Runtime and security
 - Nginx static site in Docker, listening on port 8080.
-- data.json.gz is decompressed in the browser; advanced.json contains the selected Hadadi chart series.
-- Railway must define DASHBOARD_USER and DASHBOARD_PASSWORD. The startup script creates a bcrypt-protected Nginx Basic Auth file; passwords shorter than 16 characters are rejected.
-- /healthz is an unauthenticated health endpoint; dashboard pages and data files require authentication.
-- Railway auto-deploys from the connected GitHub repository.
+- `data.json.gz` is decompressed in the browser. `advanced.json` stores chart definitions; the 18 selected Hadadi analyses rebuild their series at runtime from the matching source tables in `DATA.tables`.
+- Date windows are applied by unique calendar dates shared across series, not by slicing the last N rows independently.
+- Trailing future/projection rows beyond the source snapshot are excluded from KPI/chart calculations; the raw rows remain available in the catalog.
+- Nginx serves the dashboard on port 8080; `/healthz` is the unauthenticated health endpoint.
+- Dashboard Basic Auth is currently disabled by request. The site and packaged data files are publicly accessible.
 
 ## Important repository visibility note
-If this repository is public, GitHub also serves data.json.gz and advanced.json publicly. Dashboard Basic Auth does not protect files hosted in a public GitHub repository. Set the repository to Private before using confidential operational data.
+If this repository is public, GitHub also serves `data.json.gz` and `advanced.json` publicly. The Railway site is also public while Basic Auth is disabled. Set the repository to Private and add an access-control layer before using confidential operational data.
