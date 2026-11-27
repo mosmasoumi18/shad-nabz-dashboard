@@ -110,7 +110,7 @@ Source package: 115 files (108 CSV, 7 Excel workbooks), 213 tables/sheets.
 | Support-9 | callReasons.xlsx / Sheet1; group by srlevel2 + srlevel3, sum calls | Pareto |
 | Support-10 | Same source aggregation | Treemap |
 | Support-11 | Same source aggregation | Sunburst |
-| Analytics-1 | DailyActivity, NewMessage, NewUser, DeleteAccount, CallMessage, CheckFileError, JoinGroup, ForwardMessage | Correlation of same-period first differences |
+| Analytics-1 | DailyActivity, NewMessage, NewUser, DeleteAccount, CallMessage, JoinGroup, ForwardMessage | Correlation of same-period first differences (stale CheckFileError excluded) |
 | Analytics-5 | DailyActivity | Histogram |
 | Analytics-8 | NewMessage | Histogram |
 
