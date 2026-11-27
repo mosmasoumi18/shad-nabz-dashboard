@@ -5,7 +5,7 @@ export type TreemapDatum = { id: string; name: string; value: number };
 export interface TreemapChartProps { data: TreemapDatum[]; dateLabel?: string; unit?: string; className?: string }
 type Box = { x:number; y:number; width:number; height:number };
 type Tile = TreemapDatum & Box & { share:number; colorIndex:number };
-const colors=["var(--chart-1, var(--teal))","var(--chart-2, var(--blue))","var(--chart-3, var(--violet))","var(--chart-4, var(--amber))","var(--chart-5, var(--rose))"];
+const colors=["#0EA5E9","#F97316","#22C55E","#A855F7","#EAB308"];
 const nf=new Intl.NumberFormat("fa-IR",{maximumFractionDigits:2}), pf=new Intl.NumberFormat("fa-IR",{maximumFractionDigits:1});
 const full=(n:number)=>nf.format(n);
 const compact=(n:number)=>n>=1e9?nf.format(n/1e9)+" میلیارد":n>=1e6?nf.format(n/1e6)+" میلیون":n>=1e3?nf.format(n/1e3)+" هزار":nf.format(n);
