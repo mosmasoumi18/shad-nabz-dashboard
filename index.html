@@ -301,6 +301,34 @@ td,th{max-width:280px;overflow-wrap:anywhere}
 .loading .progress{background:#26382d!important}
 .loading .progress i{background:#35c66b!important}
 @keyframes shad-loader-spin{to{transform:rotate(360deg)}}
+
+/* Refine glass: reveal the Silk backdrop instead of hiding it */
+#shad-silk-background{
+ opacity:.30!important;
+ filter:brightness(.68) saturate(.88) contrast(1.08)!important;
+}
+.layout > aside.sidebar{
+ background:linear-gradient(145deg,rgba(23,48,32,.36),rgba(7,17,11,.43) 48%,rgba(17,42,26,.34))!important;
+ -webkit-backdrop-filter:blur(15px) saturate(205%)!important;
+ backdrop-filter:blur(15px) saturate(205%)!important;
+ border-color:rgba(205,255,218,.26)!important;
+ box-shadow:inset 1px 1px 0 rgba(255,255,255,.19),inset -1px -1px 0 rgba(255,255,255,.06),0 18px 55px rgba(0,0,0,.27)!important;
+}
+.layout > aside.sidebar:before{
+ background:linear-gradient(135deg,rgba(255,255,255,.16),transparent 30%,transparent 66%,rgba(101,221,139,.11))!important;
+}
+.layout > aside.sidebar .brand{
+ background:linear-gradient(100deg,rgba(255,255,255,.10),rgba(255,255,255,.025))!important;
+}
+@media(max-width:820px){
+ #shad-silk-background{opacity:.24!important}
+ .layout > aside.sidebar{
+  background:linear-gradient(110deg,rgba(23,48,32,.44),rgba(7,17,11,.52))!important;
+  -webkit-backdrop-filter:blur(14px) saturate(195%)!important;
+  backdrop-filter:blur(14px) saturate(195%)!important;
+ }
+}
+
 </style>
 <script src="https://cdn.plot.ly/plotly-3.3.1.min.js"></script></head>
 <body>
