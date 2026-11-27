@@ -42,5 +42,5 @@ export function PeakChart({data,title="روند فعالیت روزانه",subti
 type DataEvent=CustomEvent<{points:PeakPoint[];snapshot:string}>;
 export function PeakChartHost(){const [data,setData]=useState<PeakPoint[]>([]),[snapshot,setSnapshot]=useState("");
  useEffect(()=>{const receive=(e:Event)=>{const d=(e as DataEvent).detail;setData(d.points||[]);setSnapshot(d.snapshot||"")};window.addEventListener("shad:data-ready",receive);return()=>window.removeEventListener("shad:data-ready",receive)},[]);
- return <PeakChart data={data} title="روند فعالیت واقعی شاد" subtitle={snapshot?"Snapshot دیتابیس: "+faDate(snapshot):"DailyActivity · از بسته داده بارگذاری‌شده"} unit="رویداد"/>;
+ return <PeakChart data={data} title="روند فعالیت واقعی شاد" subtitle={snapshot?"Snapshot دیتابیس: "+faDate(snapshot):"DailyActivity · از بسته داده بارگذاری‌شده"} unit="مقدار ثبت‌شده"/>;
 }
