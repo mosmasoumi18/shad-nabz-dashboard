@@ -319,3 +319,14 @@ td,th{max-width:280px;overflow-wrap:anywhere}
  }
 }
 
+
+/* Scroll-triggered reveal: staggered, GPU-light and motion-accessible. */
+.reveal-ready{
+ opacity:0;
+ transform:translate3d(0,18px,0) scale(.992);
+ transition:opacity .52s cubic-bezier(.2,.7,.2,1) var(--reveal-delay,0ms),transform .58s cubic-bezier(.2,.7,.2,1) var(--reveal-delay,0ms);
+}
+.reveal-ready.is-visible{opacity:1;transform:translate3d(0,0,0) scale(1)}
+@media(prefers-reduced-motion:reduce){
+ .reveal-ready,.reveal-ready.is-visible{opacity:1;transform:none;transition:none}
+}
