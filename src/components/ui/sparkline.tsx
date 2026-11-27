@@ -176,7 +176,7 @@ export function Sparkline({
             onKeyDown={onKeyDown}
             onPointerMove={onPointerMove}
             onPointerLeave={() => setActiveIndex(dates.length - 1)}
-            className="block max-w-full touch-pan-y overflow-visible rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className="block max-w-full touch-pan-y overflow-hidden rounded-lg border border-border bg-card/40 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
             <g aria-hidden="true">
               {tickValues.map((value, index) => {
@@ -184,7 +184,7 @@ export function Sparkline({
                 return (
                   <g key={index}>
                     <line x1={padding} x2={rightEdge} y1={y} y2={y} stroke="var(--border)" strokeOpacity="0.72" strokeDasharray={index === 4 ? "0" : "3 4"} />
-                    <text x={width - 3} y={y + 3.5} textAnchor="end" fontSize="9" fill="var(--muted-foreground)">{tickLabel(value)}</text>
+                    <text x={width - 8} y={y + 3.5} textAnchor="end" fontSize="9" fill="var(--muted-foreground)">{tickLabel(value)}</text>
                   </g>
                 );
               })}
