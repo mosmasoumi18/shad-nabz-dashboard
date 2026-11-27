@@ -219,7 +219,7 @@ function drawAdvancedChart(div,chart){
   const f=frame(mn,mx,chart.unit);if(kind==='box')body+=f.g;
   if(kind==='box'){
    const q=a=>{let b=a.slice().sort((x,y)=>x-y),p=(b.length-1)*a;return b[Math.floor(p)]*(1-(p%1))+b[Math.ceil(p)]*(p%1)};
-   valid.forEach((s,i)=>{let a=s.points.map(p=>p[1]).sort((x,y)=>x-y);if(!a.length)return;const quant=p=>{let k=(a.length-1)*p,lo=Math.floor(k),hi=Math.ceil(k);return a[lo]*(hi-k)+a[hi]*(k-lo)};let q1=quant(.25),med=quant(.5),q3=quant(.75),iqr=q3-q1,low=Math.max(a[0],q1-1.5*iqr),high=Math.min(a[a.length-1],q3+1.5*iqr),x=L+(i+.5)*iw/valid.length,bw=Math.min(88,iw/valid.length*.48),col=colors[i%colors.length];body+=line(x,f.y(low),x,f.y(high),col)+line(x-bw/3,f.y(low),x+bw/3,f.y(low),col)+line(x-bw/3,f.y(high),x+bw/3,f.y(high),col)+rect(x-bw/2,f.y(q3),bw,Math.max(2,f.y(q1)-f.y(q3)),col,5)+line(x-bw/2,f.y(med),x+bw/2,f.y(med),C.surface,'')+txt(x,H-24,s.name,'middle',11,C.ink);a.forEach(v=>{if(v<low||v>high)body+=circle(x,f.y(v),3,C.rose,fa(v))})});
+   valid.forEach((s,i)=>{let a=s.points.map(p=>p[1]).sort((x,y)=>x-y);if(!a.length)return;const quant=p=>{let k=(a.length-1)*p,lo=Math.floor(k),hi=Math.ceil(k);return a[lo]+(a[hi]-a[lo])*(k-lo)};let q1=quant(.25),med=quant(.5),q3=quant(.75),iqr=q3-q1,low=a.find(v=>v>=q1-1.5*iqr)??a[0],high=a.slice().reverse().find(v=>v<=q3+1.5*iqr)??a[a.length-1],x=L+(i+.5)*iw/valid.length,bw=Math.min(88,iw/valid.length*.48),col=colors[i%colors.length];body+=line(x,f.y(low),x,f.y(high),col)+line(x-bw/3,f.y(low),x+bw/3,f.y(low),col)+line(x-bw/3,f.y(high),x+bw/3,f.y(high),col)+rect(x-bw/2,f.y(q3),bw,Math.max(2,f.y(q1)-f.y(q3)),col,5)+line(x-bw/2,f.y(med),x+bw/2,f.y(med),C.surface,'')+txt(x,H-24,s.name,'middle',11,C.ink);a.forEach(v=>{if(v<low||v>high)body+=circle(x,f.y(v),3,C.rose,fa(v))})});
    note='نمودار جعبه‌ای: میانه، چارک‌ها و نقاط پرت بر اساس مشاهدات همین بازه.';
   }else{
    const bins=12,step=(mx-mn||1)/bins,counts=Array(bins).fill(0);values.forEach(v=>counts[Math.min(bins-1,Math.floor((v-mn)/step))]++);const max=Math.max(1,...counts);
@@ -258,31 +258,31 @@ function drawAdvancedChart(div,chart){
   body+=xLabels(dates);
   
  }else if(kind==='pareto'||kind==='treemap'||kind==='sunburst'){
-  let rows=valid.map(s=>({name:s.name,v:s.points.reduce((u,p)=>u+p[1],0)})).filter(r=>r.v>=5).sort((a,b)=>b.v-a.v).slice(0,kind==='pareto'?12:20),total=rows.reduce((u,r)=>u+r.v,0);
+  let allRows=valid.map(s=>({name:s.name,v:s.points.reduce((u,p)=>u+p[1],0)})).sort((a,b)=>b.v-a.v),rows=allRows.filter(r=>r.v>=5).slice(0,kind==='pareto'?12:20),total=allRows.reduce((u,r)=>u+r.v,0),displayTotal=rows.reduce((u,r)=>u+r.v,0);
   if(!rows.length){div.innerHTML='<div class="chart-empty">داده‌ی کافی برای این تحلیل وجود ندارد.</div>';return}
   if(kind==='pareto'){
    let max=Math.max(...rows.map(r=>r.v)),acc=0,points=[];
    rows.forEach((r,i)=>{let bw=iw/rows.length-8,x=L+i*iw/rows.length,h=r.v/max*ih,y=T+ih-h;body+=rect(x,y,bw,h,colors[i%colors.length],5)+txt(x+bw/2,H-28,r.name.slice(0,14),'middle',10,C.ink);acc+=r.v;points.push([x+bw/2,T+ih-(acc/total)*ih])});
-   body+='<polyline points="'+points.map(p=>p.join(',')).join(' ')+'" fill="none" stroke="'+C.rose+'" stroke-width="3"/>';points.forEach((p,i)=>body+=circle(p[0],p[1],4,C.rose,fa(100*rows.slice(0,i+1).reduce((u,r)=>u+r.v,0)/total)+'٪ تجمعی'));body+=txt(W-R,T+12,'٪ تجمعی','end',10,C.rose);
+   for(let i=0;i<5;i++){let pct=100-i*25,y=T+ih*i/4;body+=line(L,y,W-R,y,C.line)+txt(L-10,y+4,short(max*(1-i/4)),'end',10,C.muted)+txt(W-R+12,y+4,fa(pct)+'٪','start',10,C.rose)}body+='<polyline points="'+points.map(p=>p.join(',')).join(' ')+'" fill="none" stroke="'+C.rose+'" stroke-width="3"/>';points.forEach((p,i)=>body+=circle(p[0],p[1],4,C.rose,fa(100*rows.slice(0,i+1).reduce((u,r)=>u+r.v,0)/total)+'٪ تجمعی'));body+=txt(L,H-5,'تعداد تماس','start',10,C.muted)+txt(W-R,H-5,'درصد تجمعی','end',10,C.rose);
   }else if(kind==='sunburst'){
    const parents=new Map();rows.forEach(r=>{let p=r.name.split(' / ')[0];parents.set(p,(parents.get(p)||0)+r.v)});
    const cx=W/2,cy=H/2,r0=38,r1=94,r2=148,TAU=Math.PI*2;
    const arc=(a,b,inner,outer)=>{const x1=cx+outer*Math.cos(a),y1=cy+outer*Math.sin(a),x2=cx+outer*Math.cos(b),y2=cy+outer*Math.sin(b),x3=cx+inner*Math.cos(b),y3=cy+inner*Math.sin(b),x4=cx+inner*Math.cos(a),y4=cy+inner*Math.sin(a),large=b-a>Math.PI?1:0;return 'M '+x1+' '+y1+' A '+outer+' '+outer+' 0 '+large+' 1 '+x2+' '+y2+' L '+x3+' '+y3+' A '+inner+' '+inner+' 0 '+large+' 0 '+x4+' '+y4+' Z'};
    let angle=-Math.PI/2,idx=0;
-   for(const [parent,pv] of parents){const span=TAU*pv/Math.max(1,total),end=angle+span,col=colors[idx%colors.length];body+='<path d="'+arc(angle,end,r0,r1)+'" fill="'+col+'" stroke="'+C.surface+'" stroke-width="2"><title>'+escSvg(parent+' · '+fa(pv))+'</title></path>';let childAngle=angle;rows.filter(r=>r.name.split(' / ')[0]===parent).forEach((r,j)=>{let childSpan=span*r.v/Math.max(1,pv),childEnd=childAngle+childSpan;body+='<path d="'+arc(childAngle,childEnd,r1+3,r2)+'" fill="'+col+'" fill-opacity="'+(j%2?.62:.82)+'" stroke="'+C.surface+'" stroke-width="2"><title>'+escSvg(r.name+' · '+fa(r.v))+'</title></path>';childAngle=childEnd});let mid=(angle+end)/2;body+=txt(cx+Math.cos(mid)*(r1+24),cy+Math.sin(mid)*(r1+24),parent.slice(0,12),'middle',9,C.ink,700);angle=end;idx++}
+   for(const [parent,pv] of parents){const span=TAU*pv/Math.max(1,displayTotal),end=angle+span,col=colors[idx%colors.length];body+='<path d="'+arc(angle,end,r0,r1)+'" fill="'+col+'" stroke="'+C.surface+'" stroke-width="2"><title>'+escSvg(parent+' · '+fa(pv))+'</title></path>';let childAngle=angle;rows.filter(r=>r.name.split(' / ')[0]===parent).forEach((r,j)=>{let childSpan=span*r.v/Math.max(1,pv),childEnd=childAngle+childSpan;body+='<path d="'+arc(childAngle,childEnd,r1+3,r2)+'" fill="'+col+'" fill-opacity="'+(j%2?.62:.82)+'" stroke="'+C.surface+'" stroke-width="2"><title>'+escSvg(r.name+' · '+fa(r.v))+'</title></path>';childAngle=childEnd});let mid=(angle+end)/2;body+=txt(cx+Math.cos(mid)*(r1+24),cy+Math.sin(mid)*(r1+24),parent.slice(0,12),'middle',9,C.ink,700);angle=end;idx++}
    body+=circle(cx,cy,r0-3,C.surface)+txt(cx,cy+4,'دلایل تماس','middle',12,C.ink,800);
    note='سان‌برست دوحلقه‌ای؛ حلقه داخلی سطح اول و حلقه بیرونی زیرگروه‌های همان دسته را نشان می‌دهد.';
   }else{
    const groups=new Map();rows.forEach(r=>{let p=r.name.split(' / ')[0];if(!groups.has(p))groups.set(p,[]);groups.get(p).push(r)});
-   let gx=L,gi=0;for(const [parent,children] of groups){let sum=children.reduce((u,r)=>u+r.v,0),gw=iw*sum/Math.max(1,total),col=colors[gi%colors.length];body+=rect(gx,T,Math.max(2,gw-3),ih,'color-mix(in srgb, '+col+' 12%, '+C.surface+')',6,col);body+=txt(gx+gw/2,T+15,parent.slice(0,18),'middle',10,C.ink,800);let gy=T+24,available=ih-28;children.forEach((r,ci)=>{let hh=available*r.v/Math.max(1,sum);body+=rect(gx+4,gy,Math.max(2,gw-11),Math.max(2,hh-3),col,4)+txt(gx+gw/2,gy+Math.max(12,hh/2),r.name.split(' / ').slice(1).join(' / ').slice(0,20),'middle',9,C.surface,700)+'<title>'+escSvg(r.name+' · '+fa(r.v))+'</title>';gy+=hh});gx+=gw;gi++}
-   note='نقشه درختی سلسله‌مراتبی؛ عرض هر گروه متناسب با مجموع تماس‌ها و ارتفاع هر زیرگروه متناسب با سهم آن است.';
+   let gx=L,gi=0;for(const [parent,children] of groups){let sum=children.reduce((u,r)=>u+r.v,0),gw=iw*sum/Math.max(1,displayTotal),col=colors[gi%colors.length];body+=rect(gx,T,Math.max(2,gw-3),ih,'color-mix(in srgb, '+col+' 12%, '+C.surface+')',6,col);body+=txt(gx+gw/2,T+15,parent.slice(0,18),'middle',10,C.ink,800);let gy=T+24,available=ih-28;children.forEach((r,ci)=>{let hh=available*r.v/Math.max(1,sum);body+=rect(gx+4,gy,Math.max(2,gw-11),Math.max(2,hh-3),col,4)+txt(gx+gw/2,gy+Math.max(12,hh/2),r.name.split(' / ').slice(1).join(' / ').slice(0,20),'middle',9,C.surface,700)+'<title>'+escSvg(r.name+' · '+fa(r.v))+'</title>';gy+=hh});gx+=gw;gi++}
+   note='نقشه درختی ۲۰ گروه پرتکرار؛ عرض گروه و ارتفاع زیرگروه متناسب با تماس‌هاست. گروه‌های کوچک‌تر از ۵ نمایش داده نمی‌شوند.';
   }
  }else if(kind==='correlation'||kind==='network'){
-  const diffs=valid.map(s=>s.points.slice(1).map((p,i)=>[p[0],p[1]-s.points[i][1]]));
-  const corr=(a,b)=>{let mb=new Map(b),pairs=a.filter(p=>mb.has(p[0])).map(p=>[p[1],mb.get(p[0])]);if(pairs.length<30)return null;let ax=pairs.reduce((u,p)=>u+p[0],0)/pairs.length,ay=pairs.reduce((u,p)=>u+p[1],0)/pairs.length,n=0,dx=0,dy=0;pairs.forEach(p=>{n+=(p[0]-ax)*(p[1]-ay);dx+=(p[0]-ax)**2;dy+=(p[1]-ay)**2});return dx&&dy?n/Math.sqrt(dx*dy):null};
+  const diffs=valid.map(s=>{const pts=s.points.slice().sort((a,b)=>a[0].localeCompare(b[0]));return pts.slice(1).map((p,i)=>[pts[i][0]+' → '+p[0],p[1]-pts[i][1]])});
+  const corr=(a,b)=>{let mb=new Map(b),pairs=a.filter(p=>mb.has(p[0])).map(p=>[p[1],mb.get(p[0])]);if(pairs.length<20)return null;let ax=pairs.reduce((u,p)=>u+p[0],0)/pairs.length,ay=pairs.reduce((u,p)=>u+p[1],0)/pairs.length,n=0,dx=0,dy=0;pairs.forEach(p=>{n+=(p[0]-ax)*(p[1]-ay);dx+=(p[0]-ax)**2;dy+=(p[1]-ay)**2});return dx&&dy?n/Math.sqrt(dx*dy):null};
   let z=diffs.map(a=>diffs.map(b=>corr(a,b))),n=valid.length,cell=Math.min(iw/n,ih/n);
   z.forEach((row,i)=>row.forEach((v,j)=>{let strength=v===null?0:Math.abs(v),col=v===null?C.line:(v>=0?C.teal:C.rose),x=L+j*iw/n,y=T+i*ih/n;body+=rect(x+2,y+2,iw/n-4,ih/n-4,col,4)+txt(x+iw/n/2,y+ih/n/2+4,v===null?'—':fa(v),'middle',11,C.surface,800);if(i===0)body+=txt(x+iw/n/2,T-8,valid[j].name.slice(0,12),'middle',9,C.muted);if(j===0)body+=txt(L-8,y+ih/n/2+4,valid[i].name.slice(0,12),'end',9,C.muted)}));
-  note='همبستگی تغییرات متوالی هم‌تاریخ؛ حداقل ۳۰ جفت مشترک. خانه خالی یعنی نمونه کافی یا واریانس لازم وجود ندارد.';
+  note='همبستگی تغییرات بین بازه‌های زمانی کاملاً یکسان؛ حداقل ۲۰ بازه مشترک. فقط شاخص‌های دارای پوشش زمانی کافی وارد محاسبه می‌شوند؛ همبستگی رابطه علّی نیست.';
  }else{
   const dates=[...new Set(valid.flatMap(s=>s.points.map(p=>p[0])))].sort(),all=valid.flatMap(s=>s.points.map(p=>p[1])),f=frame(Math.min(0,...all),Math.max(...all),chart.unit);body+=f.g;
   valid.forEach((s,si)=>{let m=new Map(s.points),d='',drawing=false;dates.forEach((date,i)=>{if(m.has(date)){d+=(drawing?' L ':'M ')+(L+i*iw/Math.max(1,dates.length-1))+' '+(T+(f.max-m.get(date)[1])/(f.max-f.min)*ih);drawing=true}else drawing=false});body+='<path d="'+d+'" fill="none" stroke="'+colors[si%colors.length]+'" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>';});
@@ -293,6 +293,9 @@ function drawAdvancedChart(div,chart){
   const rawTable='<table class="sr-only"><caption>جدول داده‌های خام نمودار '+escSvg(chart.title)+'</caption><thead><tr><th>سری</th><th>تاریخ</th><th>مقدار</th></tr></thead><tbody>'+rawRows+'</tbody></table>';
   div.innerHTML=wrap()+(legendButtons?'<div class="legend">'+legendButtons+'</div>':'')+rawTable;
   div.querySelectorAll('.chart-legend-toggle').forEach(button=>button.addEventListener('click',()=>{const name=button.getAttribute('data-series-name');if(!name)return;const next=new Set(ADVANCED_HIDDEN.get(chart.id)||[]);if(next.has(name))next.delete(name);else if(ss.length>1)next.add(name);ADVANCED_HIDDEN.set(chart.id,next);drawAdvancedChart(div,chart)}));
+ const latest=valid.flatMap(s=>s.points.map(p=>p[0])).sort().at(-1),snapshot=normDate(DATA?.meta?.snapshotJalali||'');
+ if(kind==='control'&&valid[0]?.points.length<=30)note='برای محاسبه حدود کنترل، بیش از ۳۰ مشاهده لازم است؛ بازه بزرگ‌تری انتخاب کنید.';
+ if(latest&&snapshot&&latest<snapshot)note+=' هشدار تازگی داده: آخرین مشاهده '+fmtDate(latest)+' و Snapshot کلی '+fmtDate(snapshot)+' است.';
  let computed=div.parentElement.querySelector('.computed');if(computed)computed.textContent=note;
 }
 function drawAdvanced(){
