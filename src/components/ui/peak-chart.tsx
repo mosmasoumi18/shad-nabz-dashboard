@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import { Sparkline, type SparklinePoint } from "@/components/ui/sparkline";
 
 export type PeakPoint = SparklinePoint;
-type Period = "weekly" | "monthly" | "yearly";
+type Period = "7" | "30" | "90" | "365" | "all";
 export interface PeakChartProps {
   data: PeakPoint[];
   title?: string;
@@ -12,9 +12,11 @@ export interface PeakChartProps {
   className?: string;
 }
 const periods: { key: Period; label: string; count: number }[] = [
-  { key: "weekly", label: "هفتگی", count: 7 },
-  { key: "monthly", label: "ماهانه", count: 30 },
-  { key: "yearly", label: "سالانه", count: 365 },
+  { key: "7", label: "۷ روز", count: 7 },
+  { key: "30", label: "۳۰ روز", count: 30 },
+  { key: "90", label: "۹۰ روز", count: 90 },
+  { key: "365", label: "۳۶۵ روز", count: 365 },
+  { key: "all", label: "همه", count: Number.POSITIVE_INFINITY },
 ];
 const faNumber = new Intl.NumberFormat("fa-IR", { maximumFractionDigits: 0 });
 const faDate = (value: string) => value.replace(/\d/g, (digit) => "۰۱۲۳۴۵۶۷۸۹"[Number(digit)]);
@@ -26,11 +28,20 @@ export function PeakChart({
   unit = "کاربر",
   className,
 }: PeakChartProps) {
-  const [period, setPeriod] = useState<Period>("monthly");
-  const points = useMemo(
-    () => data.filter((point) => Number.isFinite(point.value)).slice(-periods.find((item) => item.key === period)!.count),
-    [data, period],
-  );
+  const [period, setPeriod] = useState<Period>("30");
+  useEffect(() => {
+    const syncRange = (event: Event) => {
+      const range = (event as CustomEvent<{ range: string }>).detail?.range;
+      if (["7", "30", "90", "365", "all"].includes(range)) setPeriod(range as Period);
+    };
+    window.addEventListener("shad:range-change", syncRange);
+    return () => window.removeEventListener("shad:range-change", syncRange);
+  }, []);
+  const points = useMemo(() => {
+    const valid = data.filter((point) => Number.isFinite(point.value));
+    const count = periods.find((item) => item.key === period)!.count;
+    return Number.isFinite(count) ? valid.slice(-count) : valid;
+  }, [data, period]);
 
   return (
     <section dir="rtl" className={cn("min-w-0 rounded-2xl border border-border bg-card p-4 text-foreground shadow-xl", className)}>
