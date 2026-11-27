@@ -211,7 +211,7 @@ function drawAdvancedChart(div,chart){
  const line=(x1,y1,x2,y2,stroke=C.line,dash='')=>'<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="'+stroke+'" stroke-width="1" '+(dash?'stroke-dasharray="'+dash+'"':'')+'/>';
  const circle=(x,y,r,fill,title='')=>'<circle cx="'+x+'" cy="'+y+'" r="'+r+'" fill="'+fill+'">'+(title?'<title>'+escSvg(title)+'</title>':'')+'</circle>';
  const frame=(min,max,unit)=>{if(max===min){max+=Math.abs(max)*.1||1;min-=Math.abs(min)*.1||1}const span=max-min;let g='';for(let i=0;i<5;i++){let v=max-span*i/4,y=T+ih*i/4;g+=line(L,y,W-R,y,C.line)+txt(W-R+12,y+4,short(v), 'start',10,C.muted)}g+=txt(W-R,T-8,unit||'', 'end',10,C.muted);return {g,x:i=>L+(i/(Math.max(1,frame.count-1)))*iw,y:v=>T+(max-v)/span*ih,min,max}};
- const wrap=()=>'<svg class="advanced-svg" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+escSvg(chart.title)+'" preserveAspectRatio="xMidYMid meet">'+defs+body+'</svg>';
+ const wrap=()=>'<svg class="advanced-svg" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+escSvg(chart.title)+'" style="width:100%;height:100%;display:block;overflow:visible" preserveAspectRatio="xMidYMid meet">'+defs+body+'</svg>';
  const xLabels=dates=>{let out='',n=Math.min(6,dates.length);for(let i=0;i<n;i++){let j=Math.round(i*(dates.length-1)/Math.max(1,n-1));out+=txt(L+j*iw/Math.max(1,dates.length-1),H-22,faDate(dates[j].slice(5)),'middle',10,C.muted)}return out};
  if(kind==='box'||kind==='histogram'){
   const values=valid.map(s=>s.points.map(p=>p[1])).flat(),mn=Math.min(...values),mx=Math.max(...values);
