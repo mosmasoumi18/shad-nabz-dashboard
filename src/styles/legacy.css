@@ -105,11 +105,11 @@ body{background:radial-gradient(circle at 88% 0,rgba(8,166,83,.085),transparent 
 /* Advanced analytics layer */
 #advancedCharts{align-items:stretch}
 #advancedCharts .panel{min-width:0;overflow:hidden}
-#advancedCharts .plot{height:320px;direction:ltr;min-height:280px}
+#advancedCharts .plot{width:calc(100% - 36px);max-width:100%;margin-inline:auto;height:320px;direction:ltr;min-height:280px}
 #advancedCharts .chart-meta{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:5px 0 9px}
 #advancedCharts .computed{margin-top:8px;font-size:10px;color:#607b68;line-height:1.8;background:#f4faf5;border:1px solid #e6f0e8;border-radius:9px;padding:8px}
 #advancedCharts .plotly .modebar{inset-inline-end:4px!important;inset-inline-start:auto!important}
-@media(max-width:820px){#advancedCharts .plot{height:285px;min-height:250px}}
+@media(max-width:820px){#advancedCharts .plot{width:calc(100% - 24px);height:285px;min-height:250px}}
 
 /* Calm dark theme + contained typography + Liquid Glass navigation */
 :root{
