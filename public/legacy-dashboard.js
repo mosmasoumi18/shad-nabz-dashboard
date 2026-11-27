@@ -197,6 +197,7 @@ function drawAdvancedChart(div,chart){
  const colors=[C.teal,C.blue,C.amber,C.violet,C.rose,'#258c69','#617b8c','#2ba6af'];
  const escSvg=v=>String(v??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
  const fa=v=>Number(v).toLocaleString('fa-IR',{maximumFractionDigits:1});
+ const faDate=v=>String(v??'').replace(/\\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);
  const short=v=>{let a=Math.abs(v);return a>=1e9?fa(v/1e9)+' میلیارد':a>=1e6?fa(v/1e6)+' میلیون':a>=1e3?fa(v/1e3)+' هزار':fa(v)};
  const valid=ss.map(s=>({...s,points:advValid(s).map(p=>[String(p[0]),Number(p[1])])}));
  if(!valid.some(s=>s.points.length)){div.innerHTML='<div class="chart-empty">در بازه انتخابی داده معتبر وجود ندارد.</div>';return}
@@ -206,9 +207,9 @@ function drawAdvancedChart(div,chart){
  const rect=(x,y,w,h,fill,rx=5,stroke='none')=>'<rect x="'+x+'" y="'+y+'" width="'+Math.max(0,w)+'" height="'+Math.max(0,h)+'" rx="'+rx+'" fill="'+fill+'" stroke="'+stroke+'"/>';
  const line=(x1,y1,x2,y2,stroke=C.line,dash='')=>'<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="'+stroke+'" stroke-width="1" '+(dash?'stroke-dasharray="'+dash+'"':'')+'/>';
  const circle=(x,y,r,fill,title='')=>'<circle cx="'+x+'" cy="'+y+'" r="'+r+'" fill="'+fill+'">'+(title?'<title>'+escSvg(title)+'</title>':'')+'</circle>';
- const frame=(min,max,unit)=>{if(max===min){max+=Math.abs(max)*.1||1;min-=Math.abs(min)*.1||1}const span=max-min;let g='';for(let i=0;i<5;i++){let v=max-span*i/4,y=T+ih*i/4;g+=line(L,y,W-R,y,C.line)+txt(L-12,y+4,short(v), 'end',10,C.muted)}g+=txt(W-R,T-8,unit||'', 'end',10,C.muted);return {g,x:i=>L+(i/(Math.max(1,frame.count-1)))*iw,y:v=>T+(max-v)/span*ih,min,max}};
+ const frame=(min,max,unit)=>{if(max===min){max+=Math.abs(max)*.1||1;min-=Math.abs(min)*.1||1}const span=max-min;let g='';for(let i=0;i<5;i++){let v=max-span*i/4,y=T+ih*i/4;g+=line(L,y,W-R,y,C.line)+txt(W-R+12,y+4,short(v), 'start',10,C.muted)}g+=txt(W-R,T-8,unit||'', 'end',10,C.muted);return {g,x:i=>L+(i/(Math.max(1,frame.count-1)))*iw,y:v=>T+(max-v)/span*ih,min,max}};
  const wrap=()=>'<svg class="advanced-svg" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+escSvg(chart.title)+'" preserveAspectRatio="xMidYMid meet">'+defs+body+'</svg>';
- const xLabels=dates=>{let out='',n=Math.min(6,dates.length);for(let i=0;i<n;i++){let j=Math.round(i*(dates.length-1)/Math.max(1,n-1));out+=txt(L+j*iw/Math.max(1,dates.length-1),H-22,dates[j].slice(5),'middle',10,C.muted)}return out};
+ const xLabels=dates=>{let out='',n=Math.min(6,dates.length);for(let i=0;i<n;i++){let j=Math.round(i*(dates.length-1)/Math.max(1,n-1));out+=txt(L+j*iw/Math.max(1,dates.length-1),H-22,faDate(dates[j].slice(5)),'middle',10,C.muted)}return out};
  if(kind==='box'||kind==='histogram'){
   const values=valid.map(s=>s.points.map(p=>p[1])).flat(),mn=Math.min(...values),mx=Math.max(...values);
   const f=frame(mn,mx,chart.unit);body+=f.g;
@@ -237,7 +238,7 @@ function drawAdvancedChart(div,chart){
    body+=txt(W/2,H-10,'تاریخ جلالی','middle',10);
   }else{
    let pts=valid[0].points,months=[...new Set(pts.map(p=>p[0].slice(0,7)))].sort(),m=new Map(pts),max=Math.max(1,...pts.map(p=>p[1])),cellW=iw/31,cellH=Math.min(40,ih/Math.max(1,months.length));
-   months.forEach((mon,ri)=>{body+=txt(L-10,T+ri*cellH+cellH*.65,mon,'end',10,C.ink);for(let d=1;d<=31;d++){let key=mon+'/'+String(d).padStart(2,'0'),v=m.get(key)?.[1];if(v===undefined){key=mon+'-'+String(d).padStart(2,'0');v=m.get(key)?.[1]}if(v===undefined)continue;let opacity=.14+.86*v/max;body+=rect(L+(d-1)*cellW,T+ri*cellH,cellW-2,cellH-3,'color-mix(in srgb, '+C.teal+' '+(opacity*100)+'%, '+C.surface+')',3)+'<title>'+escSvg(key+' · '+fa(v))+'</title>'}});
+   months.forEach((mon,ri)=>{body+=txt(L-10,T+ri*cellH+cellH*.65,faDate(mon),'end',10,C.ink);for(let d=1;d<=31;d++){let key=mon+'/'+String(d).padStart(2,'0'),v=m.get(key)?.[1];if(v===undefined){key=mon+'-'+String(d).padStart(2,'0');v=m.get(key)?.[1]}if(v===undefined)continue;let opacity=.14+.86*v/max;body+=rect(L+(d-1)*cellW,T+ri*cellH,cellW-2,cellH-3,'color-mix(in srgb, '+C.teal+' '+(opacity*100)+'%, '+C.surface+')',3)+'<title>'+escSvg(key+' · '+fa(v))+'</title>'}});
    body+=txt(W/2,H-10,'روز ماه','middle',10);note='نقشه حرارتی تقویم شمسی؛ شدت رنگ مقدار ثبت‌شده و خانه خالی به معنی نبود رکورد است.';
   }
  }else if(kind==='control'||kind==='forecast'||kind==='line'||kind==='bar'){
@@ -258,6 +259,14 @@ function drawAdvancedChart(div,chart){
    let max=Math.max(...rows.map(r=>r.v)),acc=0,points=[];
    rows.forEach((r,i)=>{let bw=iw/rows.length-8,x=L+i*iw/rows.length,h=r.v/max*ih,y=T+ih-h;body+=rect(x,y,bw,h,colors[i%colors.length],5)+txt(x+bw/2,H-28,r.name.slice(0,14),'middle',10,C.ink);acc+=r.v;points.push([x+bw/2,T+ih-(acc/total)*ih])});
    body+='<polyline points="'+points.map(p=>p.join(',')).join(' ')+'" fill="none" stroke="'+C.rose+'" stroke-width="3"/>';points.forEach((p,i)=>body+=circle(p[0],p[1],4,C.rose,fa(100*rows.slice(0,i+1).reduce((u,r)=>u+r.v,0)/total)+'٪ تجمعی'));body+=txt(W-R,T+12,'٪ تجمعی','end',10,C.rose);
+  }else if(kind==='sunburst'){
+   const parents=new Map();rows.forEach(r=>{let p=r.name.split(' / ')[0];parents.set(p,(parents.get(p)||0)+r.v)});
+   const cx=W/2,cy=H/2,r0=38,r1=94,r2=148,TAU=Math.PI*2;
+   const arc=(a,b,inner,outer)=>{const x1=cx+outer*Math.cos(a),y1=cy+outer*Math.sin(a),x2=cx+outer*Math.cos(b),y2=cy+outer*Math.sin(b),x3=cx+inner*Math.cos(b),y3=cy+inner*Math.sin(b),x4=cx+inner*Math.cos(a),y4=cy+inner*Math.sin(a),large=b-a>Math.PI?1:0;return 'M '+x1+' '+y1+' A '+outer+' '+outer+' 0 '+large+' 1 '+x2+' '+y2+' L '+x3+' '+y3+' A '+inner+' '+inner+' 0 '+large+' 0 '+x4+' '+y4+' Z'};
+   let angle=-Math.PI/2,idx=0;
+   for(const [parent,pv] of parents){const span=TAU*pv/Math.max(1,total),end=angle+span,col=colors[idx%colors.length];body+='<path d="'+arc(angle,end,r0,r1)+'" fill="'+col+'" stroke="'+C.surface+'" stroke-width="2"><title>'+escSvg(parent+' · '+fa(pv))+'</title></path>';let childAngle=angle;rows.filter(r=>r.name.split(' / ')[0]===parent).forEach((r,j)=>{let childSpan=span*r.v/Math.max(1,pv),childEnd=childAngle+childSpan;body+='<path d="'+arc(childAngle,childEnd,r1+3,r2)+'" fill="'+col+'" fill-opacity="'+(j%2?.62:.82)+'" stroke="'+C.surface+'" stroke-width="2"><title>'+escSvg(r.name+' · '+fa(r.v))+'</title></path>';childAngle=childEnd});let mid=(angle+end)/2;body+=txt(cx+Math.cos(mid)*(r1+24),cy+Math.sin(mid)*(r1+24),parent.slice(0,12),'middle',9,C.ink,700);angle=end;idx++}
+   body+=circle(cx,cy,r0-3,C.surface)+txt(cx,cy+4,'دلایل تماس','middle',12,C.ink,800);
+   note='سان‌برست دوحلقه‌ای؛ حلقه داخلی سطح اول و حلقه بیرونی زیرگروه‌های همان دسته را نشان می‌دهد.';
   }else{
    let x=L,y=T,rowH=ih/rows.length;
    rows.forEach((r,i)=>{let w=iw*r.v/Math.max(1,total);body+=rect(x,y,Math.max(2,w-3),rowH-4,colors[i%colors.length],5)+txt(x+w/2,y+rowH*.58,r.name.slice(0,22),'middle',10,'#fff',700)+ '<title>'+escSvg(r.name+' · '+fa(r.v))+'</title>';x+=w;y+=rowH;if(x>L+iw-1){x=L}});
