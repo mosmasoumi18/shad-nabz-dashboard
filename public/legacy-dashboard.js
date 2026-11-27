@@ -3,7 +3,7 @@ const DATA_URL = '/data.json.gz';
 const NF = new Intl.NumberFormat('fa-IR', {maximumFractionDigits:1});
 const N0 = new Intl.NumberFormat('fa-IR', {maximumFractionDigits:0});
 const FULL = new Intl.NumberFormat('fa-IR', {maximumFractionDigits:2});
-const COLORS = Array.from({length:8},(_,i)=>`var(--chart-${i+1}, var(--teal))`);
+const COLORS = ['#0EA5E9','#F97316','#22C55E','#A855F7','#EAB308','#EC4899','#14B8A6','#EF4444'];
 const themeColor = (name, fallback='--teal') => getComputedStyle(document.documentElement).getPropertyValue(name).trim() || getComputedStyle(document.documentElement).getPropertyValue(fallback).trim() || 'currentColor';
 const PAGE_INFO = {
  overview:['نمای کلان شاد','تصویر مدیریتی از وضعیت محصولات و سرویس‌ها بر اساس آخرین داده‌های موجود'],
@@ -44,7 +44,7 @@ function lastPoint(arr){return arr&&arr.length?arr[arr.length-1]:null}
 function prevPoint(arr){return arr&&arr.length>1?arr[arr.length-2]:null}
 function change(a,b){if(a===null||b===null||b===0)return null;return (a-b)/Math.abs(b)*100}
 function deltaHtml(d){if(d===null)return '<span class="delta flat">—</span>';let cls=d>0.15?'up':d<-.15?'down':'flat';let sign=d>0?'+':'';return `<span class="delta ${cls}">${sign}${NF.format(d)}٪</span>`}
-function kpiHtml(label,value,date,changePct,icon,accent,soft,unit=''){return `<div class="kpi" style="--accent:var(--chart-1,var(--teal));--soft:var(--chart-1-soft,var(--teal2))"><div class="kpi-top"><span>${esc(label)}</span><span class="kpi-icon">${icon||'◈'}</span></div><div class="kpi-value">${esc(value)}${unit?` <small style="font-size:11px;color:var(--muted)">${esc(unit)}</small>`:''}</div><div class="kpi-foot"><span>${date?'آخرین تاریخ: '+fmtDate(date):'تاریخ نامشخص'}</span>${deltaHtml(changePct)}</div></div>`}
+function kpiHtml(label,value,date,changePct,icon,accent,soft,unit=''){return `<div class="kpi" style="--accent:${esc(accent||'#0EA5E9')};--soft:${esc(soft||'rgba(14,165,233,.12)')}"><div class="kpi-top"><span>${esc(label)}</span><span class="kpi-icon">${icon||'◈'}</span></div><div class="kpi-value">${esc(value)}${unit?` <small style="font-size:11px;color:var(--muted)">${esc(unit)}</small>`:''}</div><div class="kpi-foot"><span>${date?'آخرین تاریخ: '+fmtDate(date):'تاریخ نامشخص'}</span>${deltaHtml(changePct)}</div></div>`}
 function kpiFromSeries(label,arr,icon,accent,soft,showDelta=true){let l=lastPoint(arr),p=prevPoint(arr),d=l&&p&&showDelta?change(l.value,p.value):null;return kpiHtml(label,l?compact(l.value):'—',l?.date||'',d,icon,accent,soft)}
 function getLastValue(k,valueCol,dateCol){let a=series(k,valueCol,dateCol);return lastPoint(a)}
 function latestLabelValues(k,dateNames=['date_key','date','shamsidate','shamsi_date'],labelNames=['label'],valueNames=['value_num']){let t=table(k);if(!t)return {date:'',rows:[]};let di=col(t,dateNames),li=col(t,labelNames),vi=col(t,valueNames);if(di<0||li<0||vi<0)return {date:'',rows:[]};let d=tableObservedCutoff(k)||t.rows.map(r=>normDate(r[di])).filter(Boolean).sort().pop()||'';return {date:d,rows:t.rows.filter(r=>normDate(r[di])===d).map(r=>({label:String(r[li]??''),value:num(r[vi])})).filter(x=>x.label&&x.value!==null)}}
@@ -152,7 +152,7 @@ function drawGrowth(){let bazarRate=series('Bazar_averageRate.xlsx::Sheet1','ave
 
 const ADVANCED_HIDDEN=new Map();
 const ADVANCED_LABELS={Messenger:'پیام‌رسان',Tamasha:'تماشا',Infrastructure:'ترافیک و زیرساخت',Support:'پشتیبانی',Analytics:'تحلیل ترکیبی'};
-const ADVANCED_COLORS=Array.from({length:8},(_,i)=>themeColor('--chart-'+(i+1)));
+const ADVANCED_COLORS=['#0EA5E9','#F97316','#22C55E','#A855F7','#EAB308','#EC4899','#14B8A6','#EF4444'];
 function advValid(s){return (s?.points||[]).filter(p=>p[1]!==null&&p[1]!==undefined&&Number.isFinite(Number(p[1])))}
 function advMean(a){return a.length?a.reduce((s,v)=>s+v,0)/a.length:0}
 function advSd(a){return a.length?Math.sqrt(advMean(a.map(v=>(v-advMean(a))**2))):0}
@@ -188,17 +188,17 @@ function advCorr(a,b){if(a.length<30)return null;let x=advMean(a),y=advMean(b),s
 function drawAdvancedChart(div,chart){
  const allSeries=advSeries(chart),hidden=ADVANCED_HIDDEN.get(chart.id)||new Set(),ss=allSeries.filter(series=>!hidden.has(series.name)),kind=chart.kind,W=900,H=340,L=72,R=28,T=26,B=64,iw=W-L-R,ih=H-T-B;
  const css=getComputedStyle(document.documentElement),C={
-  teal:themeColor('--chart-1'),
-  blue:themeColor('--chart-2'),
-  amber:themeColor('--chart-3'),
-  rose:themeColor('--chart-5'),
-  violet:themeColor('--chart-4'),
+  teal:'#0EA5E9',
+  blue:'#F97316',
+  amber:'#EAB308',
+  rose:'#EC4899',
+  violet:'#A855F7',
   ink:themeColor('--foreground','--ink'),
   muted:themeColor('--muted-foreground','--muted'),
   line:themeColor('--border'),
   surface:themeColor('--surface')
  };
- const colors=Array.from({length:8},(_,i)=>themeColor('--chart-'+(i+1)));
+ const colors=['#0EA5E9','#F97316','#22C55E','#A855F7','#EAB308','#EC4899','#14B8A6','#EF4444'];
  const escSvg=v=>String(v??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
  const fa=v=>Number(v).toLocaleString('fa-IR',{maximumFractionDigits:1});
  const faDate=v=>jalaliTick(v);
