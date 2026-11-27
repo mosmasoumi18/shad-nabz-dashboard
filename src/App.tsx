@@ -1,0 +1,1 @@
+import {LegacyDashboard} from "@/components/LegacyDashboard";export default function App(){return <main className="min-h-screen"><LegacyDashboard/></main>}

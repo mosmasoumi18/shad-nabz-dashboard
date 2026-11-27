@@ -1,0 +1,1 @@
+export default {content:["./index.html","./src/**/*.{ts,tsx}"],theme:{extend:{colors:{shad:{950:"#07150d",900:"#0b2113",800:"#12351f",500:"#08a653",300:"#62d991"}}}},plugins:[]};

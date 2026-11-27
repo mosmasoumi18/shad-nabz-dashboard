@@ -1,0 +1,144 @@
+
+<div class="loading" id="loading" role="status" aria-live="polite"><div class="loading-card"><div class="loading-mark" aria-hidden="true"></div><div class="loading-brand">شاد <span>|</span> نبض</div><h2>در حال آماده‌سازی داشبورد</h2><p>داده‌های فشرده درون همین فایل در حال بارگذاری‌اند…</p><div class="progress"><i></i></div></div></div>
+<div class="app">
+<div class="layout">
+<aside class="sidebar">
+  <div class="brand"><div class="brand-mark"><svg class="shad-logo-svg" viewBox="0 0 512 512" role="img" aria-label="لوگوی شاد" xmlns="http://www.w3.org/2000/svg"><rect width="512" height="512" rx="112" fill="#08A94F"/><g fill="#fff"><circle cx="128" cy="132" r="74"/><circle cx="256" cy="92" r="74"/><circle cx="384" cy="132" r="74"/></g><path d="M4 270 128 394 256 270 384 394 508 270 508 404 384 510 256 405 128 510 4 404Z" fill="#FFC928"/></svg></div><div><strong>شاد | نبض</strong><small>هوش محصول و تصمیم‌سازی</small></div></div>
+  <div><div class="nav-label">داشبورد</div><nav class="nav">
+    <button class="nav-btn active" data-page="overview"><span class="ico">◈</span>نمای کلان</button>
+    <button class="nav-btn" data-page="messenger"><span class="ico">✉</span>پیام‌رسان</button>
+    <button class="nav-btn" data-page="tamasha"><span class="ico">▣</span>تماشا و تعامل</button>
+    <button class="nav-btn" data-page="search"><span class="ico">⌕</span>جست‌وجو</button>
+    <button class="nav-btn" data-page="traffic"><span class="ico">⌁</span>ترافیک و درآمد</button>
+    <button class="nav-btn" data-page="support"><span class="ico">◷</span>مرکز تماس</button>
+    <button class="nav-btn" data-page="quality"><span class="ico">✓</span>کیفیت و عملیات</button>
+    <button class="nav-btn" data-page="growth"><span class="ico">↗</span>رشد و بازار</button>
+    <button class="nav-btn" data-page="analytics"><span class="ico">⌁</span>تحلیل پیشرفته</button>
+    <button class="nav-btn" data-page="catalog"><span class="ico">▤</span>فهرست داده‌ها</button>
+  </nav></div>
+  <div class="side-foot"><strong>نسخه مبتنی بر دیتابیس کامل</strong><p>React + TypeScript · Tailwind CSS · داده‌های واقعی</p></div>
+</aside>
+<main class="main">
+<header class="topbar">
+  <div class="page-intro"><h1 id="pageTitle">نمای کلان شاد</h1><p id="pageSubtitle">تصویر مدیریتی از وضعیت محصولات و سرویس‌ها بر اساس آخرین داده‌های موجود</p></div>
+  <div class="top-actions"><div class="snapshot"><i class="live-dot"></i><span>آخرین تاریخ موجود</span><b id="snapshotDate">—</b></div><div class="range-switch" id="rangeSwitch"><button data-range="7">۷ روز</button><button data-range="30" class="active">۳۰ روز</button><button data-range="90">۹۰ روز</button><button data-range="365">۳۶۵ روز</button><button data-range="all">همه</button></div></div>
+</header>
+
+<section class="page active" id="page-overview">
+  <div class="section-title"><div><h2>نمای مدیریتی</h2><p>شاخص‌های اصلی؛ تاریخ هر شاخص از آخرین ردیف همان منبع استخراج شده است.</p></div><span class="source-tag">Snapshot · raw database</span></div>
+  <div class="kpis" id="overviewKpis"></div>
+<div id="react-peak-chart-root"></div>
+
+  <section class="shad-analytics" aria-label="تحلیل‌های سریع شاد">
+    <div class="shad-analytics-head">
+      <div><span class="shad-kicker">SHAD · PRODUCT INTELLIGENCE</span><h2>نبض لحظه‌ای محصولات</h2><p>چهار نمای ترکیبی از شاخص‌های واقعی دیتابیس؛ تاریخ هر کارت از منبع خودش خوانده می‌شود.</p></div>
+      <span class="shad-live"><i></i> متصل به داده‌های بسته</span>
+    </div>
+    <div class="shad-bento-grid" id="shadBentoGrid">
+      <article class="ab-card ab-revenue" id="abRevenue"><div class="ab-loading">در حال آماده‌سازی داده درآمد…</div></article>
+      <article class="ab-card ab-activity" id="abActivity"><div class="ab-loading">در حال آماده‌سازی داده فعالیت…</div></article>
+      <article class="ab-card ab-products" id="abProducts"><div class="ab-loading">در حال آماده‌سازی ترکیب محصولات…</div></article>
+      <article class="ab-card ab-monthly" id="abMonthly"><div class="ab-loading">در حال آماده‌سازی نمای ماهانه…</div></article>
+    </div>
+  </section>
+
+  <section class="module-hub" aria-label="میان‌بر ماژول‌های داشبورد">
+    <div class="module-hub-head"><div><span class="shad-kicker">EXPLORE THE DATA</span><h2>ماژول‌های تحلیلی</h2><p>برای ورود به هر بخش، کارت مربوط را انتخاب کنید. حجم داده بر مبنای تعداد رکوردهای موجود نمایش داده می‌شود.</p></div><span class="module-hub-count">۸ مسیر تحلیلی</span></div>
+    <div class="module-cards" id="moduleCards"><div class="module-card-placeholder">در حال ساخت کارت‌های بخش‌ها…</div></div>
+  </section>
+
+  <div class="grid2">
+    <article class="panel"><div class="panel-head"><div><h3>روند فعالیت روزانه</h3><p>مقدار ثبت‌شده در جدول DailyActivity</p></div><span class="source-tag">Messenger / DailyActivity</span></div><div class="chart" id="overviewActivity"></div></article>
+    <article class="panel"><div class="panel-head"><div><h3>روند پیام‌های جدید</h3><p>مقدار ثبت‌شده در جدول NewMessage</p></div><span class="source-tag">Messenger / NewMessage</span></div><div class="chart" id="overviewMessages"></div></article>
+  </div>
+  <div class="grid2">
+    <article class="panel"><div class="panel-head"><div><h3>ترکیب ثبت‌شده فعالیت پلتفرم</h3><p>مقادیر آخرین تاریخ؛ سهم از Total همان جدول</p></div><span class="source-tag">PlatformActivity</span></div><div id="platformBars" class="bars"></div><div class="note info"><span>ⓘ</span><div>PlatformActivity و DailyActivity دو جدول مستقل‌اند و مقادیرشان در داشبورد با یکدیگر جایگزین یا جمع نمی‌شوند.</div></div></article>
+    <article class="panel"><div class="panel-head"><div><h3>توزیع دسته‌های ماندگاری</h3><p>برچسب‌ها عیناً از جدول DailyRetention حفظ شده‌اند</p></div><span class="source-tag">DailyRetention</span></div><div id="retentionBars" class="bars"></div></article>
+  </div>
+  <article class="panel"><div class="panel-head"><div><h3>تازگی داده در ماژول‌ها</h3><p>آخرین تاریخ موجود در جداول اصلی هر بخش؛ تاریخ‌ها الزاماً هم‌زمان نیستند.</p></div></div><div class="freshness" id="freshnessGrid"></div></article>
+  <div class="note info"><span>ⓘ</span><div>در بعضی شیت‌های برنامه‌ریزی و مالی تاریخ‌های جلوتر از Snapshot عملیاتی دیده می‌شود. سربرگ داشبورد عمداً بر اساس آخرین تاریخ جدول DailyActivity تنظیم شده است، نه بیشینه تاریخ همه شیت‌ها.</div></div>
+  <div class="note warn"><span>!</span><div><strong>نکته تحلیلی:</strong> مقدار DailyActivity در ۱۴۰۵/۰۹/۰۳ نسبت به ردیف قبلی خود کاهش قابل‌توجه دارد. این تغییر در داشبورد پنهان نشده است؛ پیش از نتیجه‌گیری درباره افت کاربران، تعریف شاخص و کامل‌بودن بارگذاری روزانه باید با مالک داده بررسی شود.</div></div>
+</section>
+
+<section class="page" id="page-messenger">
+  <div class="section-title"><div><h2>پیام‌رسان و شبکه</h2><p>فعالیت، پیام، عضویت، توزیع پلتفرم و ماندگاری</p></div><span class="source-tag">Messenger_statistics</span></div>
+  <div class="kpis" id="messengerKpis"></div>
+  <div class="grid2"><article class="panel"><div class="panel-head"><div><h3>مقایسه روند فعالیت و ورود کاربران</h3><p>شاخص نسبی؛ شروع هر سری برابر ۱۰۰ است و حجم واقعی را نشان نمی‌دهد</p></div></div><div class="chart" id="messengerActivityChart"></div></article><article class="panel"><div class="panel-head"><div><h3>مقایسه روند پیام جدید و فوروارد</h3><p>شاخص نسبی؛ شروع هر سری برابر ۱۰۰ است و حجم واقعی را نشان نمی‌دهد</p></div></div><div class="chart" id="messengerMessageChart"></div></article></div>
+  <div class="grid2"><article class="panel"><div class="panel-head"><div><h3>ورود و خروج از کانال</h3><p>JoinChannel در برابر LeaveChannel</p></div></div><div class="chart" id="channelChart"></div></article><article class="panel"><div class="panel-head"><div><h3>مقایسه روند ورود و خروج از گروه</h3><p>شاخص نسبی؛ شروع هر سری برابر ۱۰۰ است</p></div></div><div class="chart" id="groupChart"></div></article></div>
+  <div class="grid2"><article class="panel"><div class="panel-head"><div><h3>نسخه‌های اندروید</h3><p>درصد سهم نسخه‌ها در آخرین تاریخ موجود</p></div><span class="source-tag">AndroidVersionsActivity</span></div><div class="bars" id="androidVersionBars"></div></article><article class="panel"><div class="panel-head"><div><h3>دسته‌های DailyRetention</h3><p>مقدار ثبت‌شده به تفکیک label</p></div><span class="source-tag">DailyRetention</span></div><div class="bars" id="messengerRetentionBars"></div></article></div>
+</section>
+
+<section class="page" id="page-tamasha">
+  <div class="section-title"><div><h2>تماشا و تعامل اجتماعی</h2><p>کاربران فعال، مشاهده، پسندیدن، انتشار و درخواست‌های ارتباط</p></div><span class="source-tag">Tamasha_statistics</span></div>
+  <div class="kpis" id="tamashaKpis"></div>
+  <div class="grid2"><article class="panel"><div class="panel-head"><div><h3>روند کاربران فعال</h3><p>جدول ActiveUsers</p></div></div><div class="chart" id="tamashaActiveChart"></div></article><article class="panel"><div class="panel-head"><div><h3>مقایسه روند مشاهده و پسندیدن</h3><p>شاخص نسبی؛ شروع هر سری برابر ۱۰۰ است</p></div></div><div class="chart" id="tamashaEngagementChart"></div></article></div>
+  <div class="grid2"><article class="panel"><div class="panel-head"><div><h3>مقایسه روند انتشار و ارتباط</h3><p>شاخص نسبی؛ شروع هر سری برابر ۱۰۰ است</p></div></div><div class="chart" id="tamashaGrowthChart"></div></article><article class="panel"><div class="panel-head"><div><h3>وضعیت بررسی محتوا</h3><p>مقادیر آخرین تاریخ؛ بدون تبدیل به نرخ موفقیت</p></div></div><div class="bars" id="moderationBars"></div></article></div>
+  <article class="panel"><div class="panel-head"><div><h3>درخواست‌ها و گزارش‌ها</h3><p>آخرین مقادیر ثبت‌شده در جداول تعامل و مدیریت محتوا</p></div></div><div class="table-wrap" id="tamashaOpsTable"></div></article>
+</section>
+
+<section class="page" id="page-search">
+  <div class="section-title"><div><h2>جست‌وجو و کشف</h2><p>رتبه‌بندی عبارت‌ها و جست‌وجوی تاریخچه عبارت در داده‌های روزانه</p></div><span class="source-tag">TopSearches · ۴۱۸۰۰ رکورد</span></div>
+  <div class="kpis" id="searchKpis"></div>
+  <article class="panel"><div class="panel-head"><div><h3>۱۰۰ عبارت برتر در آخرین تاریخ موجود</h3><p id="searchDateLabel">—</p></div><span class="source-tag">TopSearches.csv</span></div><div class="search-tools"><input class="field search" id="topSearchFilter" placeholder="فیلتر عبارت یا رتبه…"><span class="pill" id="searchFilteredCount">۱۰۰ عبارت</span><button class="btn" id="exportSearchCsv">خروجی CSV</button></div><div class="table-wrap" id="topSearchTable"></div><div class="pagination" id="topSearchPagination"></div></article>
+  <div class="grid2" style="margin-top:14px"><article class="panel"><div class="panel-head"><div><h3>روند تاریخی یک عبارت</h3><p>تعداد جست‌وجو در روزهایی که عبارت در Top 100 ثبت شده است</p></div></div><div class="search-tools"><input class="field search" id="queryTrendInput" placeholder="عبارت جست‌وجو…"><button class="btn primary" id="queryTrendBtn">نمایش روند</button></div><div class="chart" id="queryTrendChart"></div></article><article class="panel"><div class="panel-head"><div><h3>ترکیب رده‌های برتر</h3><p>فراوانی رتبه‌ها در TopSearches؛ بر اساس آخرین تاریخ</p></div></div><div id="searchRankBars" class="bars"></div><div class="note info"><span>ⓘ</span><div>TopSearches فقط ۱۰۰ عبارت برتر هر تاریخ را نگه می‌دارد؛ نبودن عبارت در یک روز به معنای صفر بودن جست‌وجوی آن نیست.</div></div></article></div>
+</section>
+
+<section class="page" id="page-traffic">
+  <div class="section-title"><div><h2>ترافیک و درآمد محصولات</h2><p>تفکیک محصول و اپراتور بر اساس شیت Traffic_V2</p></div><span class="source-tag">shad beat.xlsx / Traffic_V2</span></div>
+  <div class="kpis" id="trafficKpis"></div>
+  <div class="grid2"><article class="panel"><div class="panel-head"><div><h3>ترافیک هر محصول</h3><p>گیگابایت · آخرین روز موجود در Traffic_V2</p></div></div><div class="bars" id="productTrafficBars"></div></article><article class="panel"><div class="panel-head"><div><h3>ترافیک به تفکیک اپراتور</h3><p>گیگابایت · آخرین روز موجود</p></div></div><div class="bars" id="operatorTrafficBars"></div></article></div>
+  <div class="grid2"><article class="panel"><div class="panel-head"><div><h3>روند ترافیک همه سرویس‌ها</h3><p>گیگابایت · all_operators_all_services_traffic</p></div></div><div class="chart" id="trafficTrendChart"></div></article><article class="panel"><div class="panel-head"><div><h3>درآمد ثبت‌شده هر محصول</h3><p>ریال · ستون‌های revenue در Traffic_V2</p></div></div><div class="bars" id="productRevenueBars"></div></article></div>
+  <article class="panel"><div class="panel-head"><div><h3>فاکتورهای درآمد ترافیک</h3><p>ردیف‌های موجود در شیت invoices؛ آخرین تاریخ فاکتور در بالا</p></div><span class="source-tag">invoices</span></div><div class="table-wrap" id="invoiceTable"></div></article>
+</section>
+
+<section class="page" id="page-support">
+  <div class="section-title"><div><h2>مرکز تماس و تجربه پشتیبانی</h2><p>نرخ پاسخ، حجم تماس و موضوعات پرتکرار</p></div><span class="source-tag">Callcenter SL · Call Reason · callReasons.xlsx</span></div>
+  <div class="kpis" id="supportKpis"></div>
+  <div class="grid2"><article class="panel"><div class="panel-head"><div><h3>روند نرخ پاسخ‌گویی</h3><p>Callcenter SL · نرخ به‌صورت درصد</p></div></div><div class="chart" id="answerRateChart"></div></article><article class="panel"><div class="panel-head"><div><h3>روند تماس‌های ورودی و پاسخ‌داده‌شده</h3><p>مقدار ثبت‌شده در هر روز</p></div></div><div class="chart" id="callVolumeChart"></div></article></div>
+  <div class="grid2"><article class="panel"><div class="panel-head"><div><h3>موضوعات تماس در آخرین گزارش هفتگی</h3><p>شیت Call Reason · آخرین تاریخ برچسب‌خورده</p></div></div><div class="bars" id="callReasonBars"></div></article><article class="panel"><div class="panel-head"><div><h3>علت‌های تماس ثبت‌شده در کال‌سنتر</h3><p>تجمیع calls بر اساس srlevel3 در آخرین تاریخ موجود</p></div><span class="source-tag">callReasons.xlsx</span></div><div class="bars" id="detailedCallReasonBars"></div></article></div>
+</section>
+
+<section class="page" id="page-quality">
+  <div class="section-title"><div><h2>کیفیت، سیاست‌ها و عملیات</h2><p>بررسی فایل، سیاست‌های نظارتی، حذف حساب و بارگذاری فایل</p></div><span class="source-tag">Messenger · Tamasha · operational sheets</span></div>
+  <div class="kpis" id="qualityKpis"></div>
+  <div class="grid2"><article class="panel"><div class="panel-head"><div><h3>سیاست‌های اعمال‌شده</h3><p>آخرین مقادیر سه جدول Policy</p></div></div><div class="bars" id="policyBars"></div></article><article class="panel"><div class="panel-head"><div><h3>وضعیت بررسی فایل</h3><p>آخرین تاریخ موجود در جداول CheckFile</p></div><span class="pill warn" id="checkFileFreshness">قدیمی‌تر از سایر ماژول‌ها</span></div><div class="bars" id="fileCheckBars"></div></article></div>
+  <div class="grid2"><article class="panel"><div class="panel-head"><div><h3>روند درخواست و ارسال فایل</h3><p>RequestFile و UploadedFile</p></div></div><div class="chart" id="fileTrendChart"></div></article><article class="panel"><div class="panel-head"><div><h3>برچسب‌گذاری فایل‌ها</h3><p>سطوح High / Medium / Low / None در آخرین تاریخ جدول</p></div></div><div class="bars" id="fileTagBars"></div></article></div>
+  <div class="note warn"><span>!</span><div><strong>تازگی داده:</strong> جداول بررسی فایل و برچسب‌گذاری به ۱۴۰۴/۱۰/۲۹ می‌رسند و از جداول اصلی پیام‌رسان قدیمی‌ترند. این تفاوت در وضعیت منابع لحاظ شده است.</div></div>
+</section>
+
+<section class="page" id="page-growth">
+  <div class="section-title"><div><h2>رشد، نصب و امتیاز بازار</h2><p>داده‌های بازار، امتیازها، کاربران محصولات و رویدادهای ویژه</p></div><span class="source-tag">Bazar · Myket · shad beat</span></div>
+  <div class="kpis" id="growthKpis"></div>
+  <div class="grid2"><article class="panel"><div class="panel-head"><div><h3>روند نصب جدید بازار</h3><p>Bazar_newInstall.xlsx</p></div></div><div class="chart" id="installChart"></div></article><article class="panel"><div class="panel-head"><div><h3>روند امتیاز ثبت‌شده بازارها</h3><p>امتیاز بازار و مایکت</p></div></div><div class="chart" id="ratingChart"></div></article></div>
+  <div class="grid2"><article class="panel"><div class="panel-head"><div><h3>کاربران فعال محصولات</h3><p>شیت active user · آخرین روز موجود</p></div></div><div class="bars" id="productUsersBars"></div></article><article class="panel"><div class="panel-head"><div><h3>رویدادهای برتر هفته</h3><p>Best_Events · مقادیر آخرین گزارش هفتگی</p></div></div><div class="bars" id="bestEventsBars"></div></article></div>
+</section>
+
+<section class="page" id="page-analytics">
+  <div class="section-title"><div><h2>مرکز تحلیل پیشرفته</h2><p>نمودارهای منتخب از Hadadi Version · تحلیل اکتشافی روی سری‌های زمانی</p></div><span class="source-tag" id="advancedCount">—</span></div>
+  <div class="note info"><span>ⓘ</span><div>همبستگی به معنی رابطه علّی نیست. حدود کنترل و پیش‌بینی‌ها اکتشافی‌اند و روند، فصل‌مندی یا تغییر تعریف شاخص را لزوماً کنترل نمی‌کنند. روزهای فاقد داده با صفر جایگزین نشده‌اند.</div></div>
+  <div class="search-tools">
+    <select class="field" id="advancedGroup"><option value="">همه گروه‌ها</option><option>روند و مقایسه</option><option>تحلیل پیشرفته</option></select>
+    <input class="field search" id="advancedSearch" placeholder="جست‌وجوی عنوان نمودار…">
+  </div>
+  <div id="advancedCharts" class="grid2"></div>
+</section>
+<section class="page" id="page-catalog">
+  <div class="section-title"><div><h2>فهرست منابع و کاوش داده</h2><p>همه جداول موجود در بسته در همین فایل جاسازی شده‌اند؛ برای جزئیات، منبع را انتخاب کنید.</p></div><span class="source-tag" id="catalogCount">—</span></div>
+  <div class="kpis" id="catalogKpis"></div>
+  <article class="panel"><div class="panel-head"><div><h3>کاوشگر جداول</h3><p>فیلتر منابع، مشاهده نمونه رکوردها و دریافت CSV</p></div></div>
+    <div class="search-tools"><input class="field search" id="catalogFilter" placeholder="جست‌وجوی نام جدول، فایل یا بخش…"><select class="field" id="catalogSection"><option value="">همه بخش‌ها</option></select><span class="pill" id="catalogFiltered">—</span></div>
+    <div class="table-wrap" id="catalogTable"></div><div class="pagination" id="catalogPagination"></div>
+  </article>
+  <article class="panel" style="margin-top:14px"><div class="panel-head"><div><h3>نمایش رکوردهای منبع انتخاب‌شده</h3><p id="explorerSubtitle">از فهرست بالا یک جدول را انتخاب کنید.</p></div><button class="btn" id="exportCurrentTable" disabled>دریافت CSV</button></div><div class="search-tools"><input class="field search" id="rowFilter" placeholder="جست‌وجو داخل ردیف‌ها…" disabled></div><div class="table-wrap" id="explorerTable"><div class="chart-empty">هنوز منبعی انتخاب نشده است.</div></div><div class="pagination" id="explorerPagination"></div></article>
+  <div class="note info"><span>ⓘ</span><div>EventApiLog به‌دلیل وجود شماره تلفن و شناسه ملی، به‌صورت شمارش تجمیعی تاریخ/وضعیت ارائه شده است. در گزارش ورودهای تماشا نیز نام کاربری و متن خطا حذف شده‌اند. داده اصلی منبع تغییری نکرده؛ نسخه داشبورد فقط نسخه نمایشیِ کم‌ریسک‌تری از آن دارد.</div></div>
+</section>
+
+<div class="footer"><span>شاد | نبض · داشبورد مستقل HTML · بدون React</span><span id="footerMeta">داده‌ها از فایل ZIP بارگذاری‌شده استخراج شده‌اند.</span></div>
+</main>
+</div>
+</div>
+
+
+<!-- Silk WebGL background: visual layer only; dashboard behavior remains unchanged. -->
+
+
