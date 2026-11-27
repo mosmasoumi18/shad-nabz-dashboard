@@ -25,7 +25,13 @@ Source package: 115 files (108 CSV, 7 Excel workbooks), 213 tables/sheets.
 9. **Search unit:** TopSearches bars say “جست‌وجو” rather than “عبارت” for a count field.
 10. **Support KPI:** the response-time metric is labelled “میانگین زمان پاسخ”.
 11. **Control charts:** the former full-history global mean/standard-deviation bands have been replaced by rolling bands based on the previous 30 observations. The note explicitly says this is exploratory and does not replace a process-control chart adjusted for trend and seasonality.
-12. **Advanced chart presentation:** fixed-height responsive Plotly containers and axis titles/units were added; SVG axis values use compact notation to reduce clipping.
+12. **Advanced chart presentation:** the 18 advanced chart definitions are rendered with the dashboard's custom SVG renderer; numeric ticks use compact Persian units and chart values remain source-backed.
+13. **Shared React Sparkline:** all primary time-series line-chart targets and the overview revenue/activity trend cards now mount `src/components/ui/sparkline.tsx`. The component uses pure SVG at measured pixel dimensions (ResizeObserver, no viewBox), no axes, oldest-on-right/newest-on-left geometry, a latest-value dot, Persian number formatting, Jalali month labels, full-value tooltips, and first-to-last percentage summaries.
+14. **RTL chart geometry:** advanced time-series, heatmap and scatter charts now reverse chronological geometry so time moves leftward; value labels sit at the right edge. Horizontal bar tracks fill from right to left with labels on the right.
+15. **Shared theme palette:** chart series colors are resolved from `--chart-1` through `--chart-8`, with semantic fallbacks; chart components no longer define per-series hex colors.
+16. **Accessible chart controls:** Sparkline and advanced charts expose screen-reader tables with raw series/date/value rows. Their legend buttons use `aria-pressed`, support toggling, and prevent hiding the last visible series. Sparkline keyboard navigation supports ArrowLeft/ArrowRight, Home/End and Escape, with the active value announced through aria-live.
+17. **Currency display:** revenue values stored in Rial are converted by dividing by 10 and displayed in Toman in the traffic and overview revenue panels; raw catalog/explorer source values remain unchanged.
+18. **Persian UI details:** chart values use Persian digits and the Persian thousands separator; tooltips show full values, compact labels use هزار/میلیون/میلیارد, date labels use Jalali month names, and reduced-motion preferences disable chart entry animation.
 
 ## Source-data cross-checks
 
@@ -114,4 +120,4 @@ Source package: 115 files (108 CSV, 7 Excel workbooks), 213 tables/sheets.
 - Advanced definitions: 18 present; 0 embedded series remain.
 - Source table/field mappings for all 18 advanced charts: checked against the supplied CSV/Excel schemas.
 - Main chart call sites: 32 found and mapped to source tables.
-- Railway: code changes are committed to GitHub `main`; the current Railway deployment still needs to be rebuilt from the new main commit and then checked for terminal SUCCESS.
+- Railway: source changes are committed to GitHub `main`; the Railway production build and runtime verification are being checked against the final commit.
