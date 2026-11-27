@@ -10,6 +10,7 @@ type SparklineMountEvent = CustomEvent<{
   series: SparklineSeries[];
   title: string;
   unit?: string;
+  height?: number;
 }>;
 
 export function LegacyDashboard() {
@@ -53,6 +54,7 @@ export function LegacyDashboard() {
           series={payload.series}
           title={payload.title}
           unit={payload.unit || ""}
+          height={payload.height || 104}
           showHeading={false}
           className="w-full"
         />,
