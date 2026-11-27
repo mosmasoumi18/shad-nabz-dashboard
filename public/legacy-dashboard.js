@@ -313,8 +313,149 @@ function renderPage(page,force=false){if(!force&&RENDERED_PAGES.has(page))return
 function renderCurrentPage(force=false){const active=document.querySelector('.page.active')?.id?.replace('page-','')||ACTIVE_PAGE;renderPage(active,force)}
 function setPage(page){ACTIVE_PAGE=page;document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id==='page-'+page));document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.page===page));$('pageTitle').textContent=PAGE_INFO[page][0];$('pageSubtitle').textContent=PAGE_INFO[page][1];renderPage(page);window.dispatchEvent(new CustomEvent('shad:page-change',{detail:{page}}));window.scrollTo({top:0,behavior:'smooth'})}
 function renderAll(){renderPage('overview',true)}
-async function loadData(){try{const bytes=new Uint8Array(await (await fetch(DATA_URL)).arrayBuffer());if(!('DecompressionStream'in window))throw new Error('این مرورگر از بازکردن داده فشرده پشتیبانی نمی‌کند.');const stream=new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));const txt=await new Response(stream).text();DATA=JSON.parse(txt);TABLES=DATA.tables;window.dispatchEvent(new CustomEvent('shad:data-ready',{detail:{points:series('Messenger_statistics/DailyActivity','value_num'),snapshot:DATA.meta?.snapshotJalali||''}}));try{const ab=new Uint8Array(await (await fetch('/advanced.json')).arrayBuffer());ADVANCED_DATA=await (await fetch('/advanced.json')).json()}catch(advancedError){console.warn('Advanced charts could not be loaded',advancedError);ADVANCED_DATA={}}ADVANCED_DATA=rebuildAdvancedFromSource();$('snapshotDate').textContent=fmtDate(DATA.meta.snapshotJalali);$('footerMeta').textContent=`${fmt(DATA.meta.fileCount)} فایل · ${fmt(DATA.meta.tableCount)} جدول · آخرین تاریخ کلی ${fmtDate(DATA.meta.snapshotJalali)}`;renderAll();$('loading').remove()}catch(e){$('loading').innerHTML=`<div class="loading-card"><div class="loading-mark is-error" aria-hidden="true">!</div><div class="loading-brand">شاد <span>|</span> نبض</div><h2>بارگذاری داده انجام نشد</h2><p>${esc(e.message)}</p><p>فایل را با نسخه جدید Chrome یا Edge باز کنید.</p></div>`;console.error(e)}}
+async function loadData(){try{const bytes=new Uint8Array(await (await fetch(DATA_URL)).arrayBuffer());if(!('DecompressionStream'in window))throw new Error('این مرورگر از بازکردن داده فشرده پشتیبانی نمی‌کند.');const stream=new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));const txt=await new Response(stream).text();DATA=JSON.parse(txt);TABLES=DATA.tables;window.dispatchEvent(new CustomEvent('shad:data-ready',{detail:{points:window.__shadRawSeries('Messenger_statistics/DailyActivity','value_num'),snapshot:DATA.meta?.snapshotJalali||''}}));try{const ab=new Uint8Array(await (await fetch('/advanced.json')).arrayBuffer());ADVANCED_DATA=await (await fetch('/advanced.json')).json()}catch(advancedError){console.warn('Advanced charts could not be loaded',advancedError);ADVANCED_DATA={}}ADVANCED_DATA=rebuildAdvancedFromSource();$('snapshotDate').textContent=fmtDate(DATA.meta.snapshotJalali);$('footerMeta').textContent=`${fmt(DATA.meta.fileCount)} فایل · ${fmt(DATA.meta.tableCount)} جدول · آخرین تاریخ کلی ${fmtDate(DATA.meta.snapshotJalali)}`;renderAll();$('loading').remove()}catch(e){$('loading').innerHTML=`<div class="loading-card"><div class="loading-mark is-error" aria-hidden="true">!</div><div class="loading-brand">شاد <span>|</span> نبض</div><h2>بارگذاری داده انجام نشد</h2><p>${esc(e.message)}</p><p>فایل را با نسخه جدید Chrome یا Edge باز کنید.</p></div>`;console.error(e)}}
 document.querySelectorAll('.nav-btn').forEach(b=>b.addEventListener('click',()=>setPage(b.dataset.page)));
 document.querySelectorAll('[data-range]').forEach(b=>b.addEventListener('click',()=>{RANGE=b.dataset.range;document.querySelectorAll('[data-range]').forEach(x=>x.classList.toggle('active',x===b));renderCurrentPage(true)}));
 $('topSearchFilter').addEventListener('input',()=>{SEARCH_PAGE=1;renderTopSearchTable()});$('exportSearchCsv').addEventListener('click',()=>{let t=table('Messenger_statistics/TopSearches');downloadCSV('Messenger_statistics/TopSearches')});$('queryTrendBtn').addEventListener('click',drawQueryTrend);$('queryTrendInput').addEventListener('keydown',e=>{if(e.key==='Enter')drawQueryTrend()});$('advancedGroup').addEventListener('change',drawAdvanced);$('advancedSearch').addEventListener('input',drawAdvanced);$('catalogFilter').addEventListener('input',()=>{CATALOG_PAGE=1;renderCatalog()});$('catalogSection').addEventListener('change',()=>{CATALOG_PAGE=1;renderCatalog()});$('rowFilter').addEventListener('input',()=>{EXPLORER_PAGE=1;renderExplorer()});$('exportCurrentTable').addEventListener('click',()=>selectedTable&&downloadCSV(selectedTable));
+
+/* Range-aware aggregation: every chart is recalculated from the selected source-date window. */
+(function(){
+ if(window.__shadRangeAggregationInstalled)return;
+ window.__shadRangeAggregationInstalled=true;
+ const dateCols=['date_key','date','shamsi_date','shamsidate','تاریخ جلالی','تاریخ','invoice_date','Friday_date','Date_Created_Jalali','Created_At'];
+ window.__shadRawSeries=series;
+ const maxDates=()=>RANGE==='all'?Infinity:Math.max(1,Number(RANGE)||30);
+ function rangeRows(key,names=dateCols){
+  const t=table(key);if(!t)return [];
+  const di=col(t,names);if(di<0)return t.rows.slice();
+  const dates=[...new Set(t.rows.map(r=>normDate(r[di])).filter(d=>d&&withinTableDate(key,d)))].sort();
+  const keep=new Set(dates.slice(-maxDates()));
+  return t.rows.filter(r=>{const d=normDate(r[di]);return d&&withinTableDate(key,d)&&keep.has(d)});
+ }
+ function avg(values){const a=values.filter(Number.isFinite);return a.length?a.reduce((x,y)=>x+y,0)/a.length:null}
+ function sum(values){const a=values.filter(Number.isFinite);return a.length?a.reduce((x,y)=>x+y,0):null}
+ function windowSeries(key,valueNames,dateNames){
+  const t=table(key);if(!t)return [];
+  const names=dateNames||dateCols,di=col(t,names),vi=col(t,valueNames);if(di<0||vi<0)return [];
+  return rangeRows(key,names).map(r=>({date:normDate(r[di]),value:num(r[vi])})).filter(p=>p.date&&p.value!==null).sort((a,b)=>a.date.localeCompare(b.date));
+ }
+ function aggregateLabels(key,dateNames,labelNames,valueNames){
+  const t=table(key);if(!t)return {date:'',rows:[]};
+  const di=col(t,dateNames),li=col(t,labelNames),vi=col(t,valueNames);if(di<0||li<0||vi<0)return {date:'',rows:[]};
+  const rows=rangeRows(key,dateNames),groups=new Map();
+  for(const r of rows){const label=String(r[li]??'').trim(),value=num(r[vi]);if(!label||value===null)continue;if(!groups.has(label))groups.set(label,[]);groups.get(label).push(value)}
+  const date=rows.map(r=>normDate(r[di])).filter(Boolean).sort().at(-1)||'';
+  return {date,rows:[...groups].map(([label,values])=>({label,value:avg(values)})).filter(x=>x.value!==null)};
+ }
+ function periodKpi(label,a,icon,accent,soft){
+  const points=(a||[]).filter(p=>Number.isFinite(p.value)),last=points.at(-1),first=points[0],value=avg(points.map(p=>p.value));
+  return kpiHtml(label+' · میانگین دوره',value===null?'—':compact(value),last?.date||'',points.length>1?change(last.value,first.value):null,icon,accent,soft);
+ }
+ series=function(key,valueNames,dateNames){return windowSeries(key,valueNames,dateNames)};
+ latestRows=function(key,dateNames){
+  const t=table(key);if(!t)return {date:'',rows:[]};const names=dateNames||dateCols,di=col(t,names);if(di<0)return {date:'',rows:t.rows};
+  const rows=rangeRows(key,names),date=rows.map(r=>normDate(r[di])).filter(Boolean).sort().at(-1)||'';
+  return {date,rows:rows.filter(r=>normDate(r[di])===date)};
+ };
+ latestLabelValues=function(key,dateNames=['date_key','date','shamsidate','shamsi_date'],labelNames=['label'],valueNames=['value_num']){return aggregateLabels(key,dateNames,labelNames,valueNames)};
+ getLastValue=function(key,valueNames,dateNames){const a=windowSeries(key,valueNames,dateNames),v=avg(a.map(x=>x.value));return v===null?null:{date:a.at(-1)?.date||'',value:v}};
+ kpiFromSeries=function(label,a,icon,accent,soft){return periodKpi(label,a,icon,accent,soft)};
+
+ /* Search ranking is the sum of actual search_count values in the chosen dates. */
+ drawSearch=function(){
+  const key='Messenger_statistics/TopSearches',t=table(key);if(!t)return;
+  const di=col(t,'shamsi_date'),qi=col(t,'search_text'),ci=col(t,'search_count');if(di<0||qi<0||ci<0)return;
+  const rows=rangeRows(key,['shamsi_date']),dates=[...new Set(rows.map(r=>normDate(r[di])))].sort(),groups=new Map();
+  for(const r of rows){const q=String(r[qi]||'').trim(),v=num(r[ci]);if(q&&v!==null)groups.set(q,(groups.get(q)||0)+v)}
+  currentSearchRows=[...groups].sort((a,b)=>b[1]-a[1]).map(([q,v],i)=>[dates.at(-1)||'',i+1,q,v]);
+  const top=currentSearchRows[0],date=dates.at(-1)||'';
+  renderKpis('searchKpis',kpiHtml('عبارت اول در بازه',top?.[2]||'—',date,null,'⌕','#087f78','#dff3ef')+kpiHtml('مجموع جست‌وجوی عبارت اول',top?fmt(top[3]):'—',date,null,'#','#3269b4','#e8f0fc')+kpiHtml('عبارت‌های یکتا در بازه',fmt(currentSearchRows.length),date,null,'▤','#7565b5','#f0edfb')+kpiHtml('روزهای دارای داده',fmt(dates.length),date,null,'◷','#bf7d27','#fff2df'));
+  $('searchDateLabel').textContent='تجمیع بازه: '+fmtDate(dates[0]||'—')+' تا '+fmtDate(date);
+  $('topSearchFilter').value='';SEARCH_PAGE=1;renderTopSearchTable();
+  drawBars('searchRankBars',currentSearchRows.slice(0,10).map(r=>({name:r[2],value:r[3],display:fmt(r[3])+' جست‌وجو'})));
+  $('queryTrendChart').innerHTML='<div class="chart-empty">یک عبارت را وارد کنید تا روند آن در بازه انتخابی نمایش داده شود.</div>';
+ };
+ drawQueryTrend=function(){
+  const q=$('queryTrendInput').value.trim();if(!q)return;
+  const key='Messenger_statistics/TopSearches',t=table(key);if(!t)return;
+  const di=col(t,'shamsi_date'),qi=col(t,'search_text'),ci=col(t,'search_count'),g=new Map();
+  for(const r of rangeRows(key,['shamsi_date'])){if(String(r[qi]||'').trim()!==q)continue;const d=normDate(r[di]),v=num(r[ci]);if(d&&v!==null)g.set(d,(g.get(d)||0)+v)}
+  const points=[...g].sort((a,b)=>a[0].localeCompare(b[0])).map(([date,value])=>({date,value}));
+  if(!points.length){$('queryTrendChart').innerHTML='<div class="chart-empty">این عبارت در بازه انتخابی پیدا نشد.</div>';return}
+  drawLine('queryTrendChart',[{name:q,points,color:COLORS[0]}]);
+ };
+ $('queryTrendBtn').addEventListener('click',drawQueryTrend);
+ $('queryTrendInput').addEventListener('keydown',e=>{if(e.key==='Enter')drawQueryTrend()});
+
+ /* Traffic: totals and category bars are recalculated across the selected period. */
+ drawTraffic=function(){
+  const key='shad beat.xlsx::Traffic_V2',t=table(key);if(!t)return;
+  const rows=rangeRows(key,['shamsi_date']),ix=n=>col(t,n),sumCol=n=>sum(rows.map(r=>num(r[ix(n)])).filter(v=>v!==null));
+  const date=rows.map(r=>normDate(r[ix('shamsi_date')])).filter(Boolean).sort().at(-1)||'';
+  const traffic=sumCol('all_operators_all_services_traffic'),revenue=sumCol('all_operators_all_services_revenue'),mci=sumCol('MCI_all_sevices_traffic');
+  const products=[['دیدنی','Didani_All_operators_GB'],['ورزشی','Sport_All_operators_GB'],['شادبین','Shadbin_All_operators_GB'],['تماشا','Tamasha_All_operators_GB'],['TV','TV_All_operators_GB']].map(([name,key])=>({name,value:sumCol(key)}));
+  const operators=[['همراه اول','MCI_all_sevices_traffic'],['ایرانسل','MTN_all_sevices_traffic'],['رایتل','Rightel_all_sevices_traffic'],['سایر','Other_all_sevices_traffic']].map(([name,key])=>({name,value:sumCol(key)}));
+  const revenues=[['دیدنی','Didani__All_operators_revenue'],['ورزشی','Sport__All_operators_revenue'],['شادبین','Shadbin__All_operators_revenue'],['تماشا','Tamasha__All_operators_revenue'],['TV','TV__All_operators_revenue']].map(([name,key])=>({name,value:sumCol(key)}));
+  renderKpis('trafficKpis',kpiHtml('مجموع ترافیک بازه',compact(traffic),date,null,'⌁','#087f78','#dff3ef','GB')+kpiHtml('مجموع درآمد بازه',compact(revenue),date,null,'◉','#3269b4','#e8f0fc','ریال')+kpiHtml('سهم وزنی ترافیک همراه اول',traffic?NF.format(mci/traffic*100):'—',date,null,'▤','#7565b5','#f0edfb','٪')+kpiHtml('مجموع ترافیک تماشا',compact(products[3]?.value),date,null,'▣','#bf7d27','#fff2df','GB'));
+  drawBars('productTrafficBars',products.map(x=>({...x,display:compact(x.value)+' GB'})));
+  drawBars('operatorTrafficBars',operators.map(x=>({...x,display:compact(x.value)+' GB'})));
+  drawLine('trafficTrendChart',[{name:'کل ترافیک',points:windowSeries(key,'all_operators_all_services_traffic','shamsi_date'),color:COLORS[0]}],'GB');
+  drawBars('productRevenueBars',revenues.map(x=>({...x,display:compact(x.value)+' ریال'})));
+  const inv=table('shad beat.xlsx::invoices');if(inv){const di=col(inv,'invoice_date'),op=col(inv,'operator'),tr=col(inv,'traffic_GB'),net=col(inv,'Net Amount'),gross=col(inv,'Gross Amount');const data=rangeRows('shad beat.xlsx::invoices',['invoice_date']).sort((a,b)=>normDate(b[di]).localeCompare(normDate(a[di]))).slice(0,12).map(r=>[fmtDate(normDate(r[di])),r[op],fmt(num(r[tr])),fmt(num(r[gross])),fmt(num(r[net]))]);$('invoiceTable').innerHTML=formatTable(['تاریخ فاکتور','اپراتور','ترافیک GB','مبلغ ناخالص ریال','مبلغ خالص ریال'],data)}
+ };
+
+ /* Support: weighted answer rate, period call totals, and date-filtered reasons. */
+ drawSupport=function(){
+  const key='shad beat.xlsx::Callcenter SL',rate=windowSeries(key,'نرخ پاسخ به تماس','date'),incoming=windowSeries(key,'تماس ورودی','date'),answered=windowSeries(key,'تماس پاسخ داده شده','date'),speed=windowSeries(key,'سرعت پاسخ به تماس (ثانیه)','date');
+  const inTotal=sum(incoming.map(x=>x.value)),ansTotal=sum(answered.map(x=>x.value)),weighted=inTotal?ansTotal/inTotal:avg(rate.map(x=>x.value)),date=rate.at(-1)?.date||incoming.at(-1)?.date||'';
+  renderKpis('supportKpis',kpiHtml('نرخ پاسخ‌گویی وزنی',weighted===null?'—':NF.format(weighted*100)+'٪',date,null,'✓','#087f78','#dff3ef')+kpiHtml('مجموع تماس ورودی',inTotal===null?'—':fmt(inTotal),date,null,'↙','#3269b4','#e8f0fc')+kpiHtml('مجموع تماس پاسخ‌داده‌شده',ansTotal===null?'—':fmt(ansTotal),date,null,'↗','#7565b5','#f0edfb')+kpiHtml('میانگین سرعت پاسخ',avg(speed.map(x=>x.value))===null?'—':fmt(avg(speed.map(x=>x.value)))+' ثانیه',date,null,'◷','#bf7d27','#fff2df'));
+  drawLine('answerRateChart',[{name:'نرخ پاسخ',points:rate.map(x=>({...x,value:x.value*100})),color:COLORS[0]}],'٪',true);
+  drawLine('callVolumeChart',[{name:'تماس ورودی',points:incoming,color:COLORS[1]},{name:'تماس پاسخ‌داده‌شده',points:answered,color:COLORS[0]}]);
+  const cr=table('shad beat.xlsx::Call Reason');if(cr){const ni=col(cr,'call reason'),vi=col(cr,'count_current_week'),g=new Map();for(const r of rangeRows('shad beat.xlsx::Call Reason',['date'])){const n=String(r[ni]||'').trim(),v=num(r[vi]);if(n&&v!==null){if(!g.has(n))g.set(n,[]);g.get(n).push(v)}}drawBars('callReasonBars',[...g].map(([name,values])=>({name,value:avg(values),display:compact(avg(values))+' میانگین'})).sort((a,b)=>b.value-a.value).slice(0,10))}
+  const det=table('callReasons.xlsx::Sheet1');if(det){const ni=col(det,'srlevel3'),vi=col(det,'calls'),g=new Map();for(const r of rangeRows('callReasons.xlsx::Sheet1',['shamsidate'])){const n=String(r[ni]||'سایر'),v=num(r[vi]);if(v!==null)g.set(n,(g.get(n)||0)+v)}drawBars('detailedCallReasonBars',[...g].map(([name,value])=>({name,value})).sort((a,b)=>b.value-a.value).slice(0,10))}
+ };
+
+ drawQuality=function(){
+  const defs=[['حذف حساب','Messenger_statistics/DeleteAccount'],['درخواست فایل','Messenger_statistics/RequestFile'],['فایل بارگذاری‌شده','Messenger_statistics/UploadedFile'],['حجم فایل','Messenger_statistics/FileSize']];
+  renderKpis('qualityKpis',defs.map(([name,key])=>{const a=windowSeries(key,'value_num'),v=avg(a.map(x=>x.value));return kpiHtml(name+' · میانگین روزانه',v===null?'—':key.endsWith('FileSize')?compact(v/1024**4)+' TiB':compact(v),a.at(-1)?.date||'',null,'◈')}).join(''));
+  const v=k=>avg(windowSeries('Messenger_statistics/'+k,'value_num').map(x=>x.value));
+  drawBars('policyBars',['PolicyNoBan','PolicyLimitBan','PolicyFullBan'].map((k,i)=>({name:k,value:v(k),display:v(k)===null?'—':compact(v(k))+' میانگین',color:COLORS[i]})));
+  drawBars('fileCheckBars',['CheckFileEntry','CheckFileChecked','CheckFileError','CheckFileHighConfidence','CheckFileNotChecked'].map((k,i)=>({name:k.replace('CheckFile',''),value:v(k),display:v(k)===null?'—':compact(v(k))+' میانگین',color:COLORS[i]})));
+  drawLine('fileTrendChart',[{name:'RequestFile',points:windowSeries('Messenger_statistics/RequestFile','value_num'),color:COLORS[1]},{name:'UploadedFile',points:windowSeries('Messenger_statistics/UploadedFile','value_num'),color:COLORS[0]}]);
+  drawBars('fileTagBars',['FileTagHigh','FileTagMedium','FileTagLow','FileTagNone'].map((k,i)=>({name:k.replace('FileTag',''),value:v(k),display:v(k)===null?'—':compact(v(k))+' میانگین',color:COLORS[i]})));
+  const latest=windowSeries('Messenger_statistics/CheckFileEntry','value_num').at(-1)?.date||windowSeries('Messenger_statistics/FileTagNone','value_num').at(-1)?.date||'',snapshot=normDate(DATA.meta.snapshotJalali);
+  $('checkFileFreshness').textContent='آخرین داده: '+fmtDate(latest||'ناموجود')+(latest&&snapshot&&latest<snapshot?' · منبع قدیمی نسبت به Snapshot':'');
+ };
+
+ drawGrowth=function(){
+  const rate=windowSeries('Bazar_averageRate.xlsx::Sheet1','average_rate'),inst=windowSeries('Bazar_newInstall.xlsx::Sheet1','new_install'),updates=windowSeries('Bazar_updates.xlsx::Sheet1','updates'),myket=windowSeries('shad beat.xlsx::Myket_AVG_new_rate','AVG_new_rate'),shaad=windowSeries('shad beat.xlsx::Shaad_in_Bazaar','final_rate');
+  const installTotal=sum(inst.map(x=>x.value)),updateTotal=sum(updates.map(x=>x.value)),marketAvg=avg(rate.map(x=>x.value)),myketAvg=avg(myket.map(x=>x.value));
+  renderKpis('growthKpis',kpiHtml('میانگین امتیاز بازار',marketAvg===null?'—':NF.format(marketAvg),rate.at(-1)?.date||'',null,'★','#087f78','#dff3ef')+kpiHtml('مجموع نصب جدید بازه',installTotal===null?'—':fmt(installTotal),inst.at(-1)?.date||'',null,'＋','#3269b4','#e8f0fc')+kpiHtml('مجموع به‌روزرسانی بازه',updateTotal===null?'—':fmt(updateTotal),updates.at(-1)?.date||'',null,'↻','#7565b5','#f0edfb')+kpiHtml('میانگین امتیاز جدید مایکت',myketAvg===null?'—':NF.format(myketAvg),myket.at(-1)?.date||'',null,'★','#bf7d27','#fff2df'));
+  drawLine('installChart',[{name:'نصب جدید',points:inst,color:COLORS[0]}]);
+  drawLine('ratingChart',[{name:'بازار',points:rate,color:COLORS[1]},{name:'مایکت',points:myket,color:COLORS[0]},{name:'امتیاز شاد در بازار',points:shaad,color:COLORS[2]}]);
+  const au=table('shad beat.xlsx::active user');if(au){const rows=rangeRows('shad beat.xlsx::active user',['date']),defs=[['ورزشی','Sport DAU'],['دیدنی','Didani DAU'],['شادبین','ShadBin DAU']];drawBars('productUsersBars',defs.map(([name,c])=>{const i=col(au,c),v=avg(rows.map(r=>num(r[i])).filter(x=>x!==null));return {name,value:v,display:v===null?'—':compact(v)+' میانگین روزانه'}}))}
+  const ev=table('shad beat.xlsx::Best_Events');if(ev){const ni=col(ev,'event'),vi=col(ev,'count_current_week'),g=new Map();for(const r of rangeRows('shad beat.xlsx::Best_Events',['Friday_date'])){const n=String(r[ni]||'').trim(),v=num(r[vi]);if(n&&v!==null)g.set(n,(g.get(n)||0)+v)}drawBars('bestEventsBars',[...g].map(([name,value])=>({name,value})).sort((a,b)=>b.value-a.value).slice(0,8))}
+ };
+
+ /* Retain Bento visuals, but make its KPI values and product treemap period-aware. */
+ const originalBento=renderAnalyticsBento;
+ renderAnalyticsBento=function(){
+  originalBento();
+  const revenue=windowSeries('shad beat.xlsx::Traffic_V2','all_operators_all_services_revenue','shamsi_date'),rv=sum(revenue.map(x=>x.value));
+  const rvEl=$('abRevenue')?.querySelector('.ab-value');if(rvEl)rvEl.innerHTML=(rv===null?'—':compact(rv))+' <small>ریال · مجموع بازه</small>';
+  const activity=windowSeries('Messenger_statistics/DailyActivity','value_num'),login=windowSeries('Messenger_statistics/LoginUser','value_num'),messages=windowSeries('Messenger_statistics/NewMessage','value_num');
+  const av=avg(activity.map(x=>x.value)),lv=avg(login.map(x=>x.value)),mv=avg(messages.map(x=>x.value));
+  const avEl=$('abActivity')?.querySelector('.ab-value');if(avEl)avEl.innerHTML=(av===null?'—':compact(av))+' <small>میانگین روزانه</small>';
+  const dual=$('abActivity')?.querySelectorAll('.ab-dual-item b');if(dual?.[0])dual[0].textContent=lv===null?'—':compact(lv);if(dual?.[1])dual[1].textContent=mv===null?'—':compact(mv);
+  const t=table('shad beat.xlsx::Traffic_V2');if(t){const rows=rangeRows('shad beat.xlsx::Traffic_V2',['shamsi_date']),ix=n=>col(t,n),defs=[['didani','دیدنی','Didani_All_operators_GB'],['sport','ورزشی','Sport_All_operators_GB'],['shadbin','شادبین','Shadbin_All_operators_GB'],['tamasha','تماشا','Tamasha_All_operators_GB'],['tv','تلویزیون','TV_All_operators_GB']],data=defs.map(([id,name,c])=>({id,name,value:sum(rows.map(r=>num(r[ix(c)])||0))||0})).filter(x=>x.value>0),date=rows.map(r=>normDate(r[ix('shamsi_date')])).sort().at(-1)||'';$('abProducts').innerHTML='<div class="ab-card-top"><div class="ab-eyebrow">مجموع مصرف ترافیک محصولات در بازه</div><span class="ab-source">Traffic_V2 · '+fmtDate(date)+'</span></div><div id="react-treemap-chart-root"></div>';window.dispatchEvent(new CustomEvent('shad:treemap-mount',{detail:{data,dateLabel:fmtDate(date)}}))}
+ };
+
+ /* A previously visited page must never reuse stale chart DOM after changing range. */
+ renderPage=function(page,force=false){
+  const renderers={overview:drawOverview,messenger:drawMessenger,tamasha:drawTamasha,search:drawSearch,traffic:drawTraffic,support:drawSupport,quality:drawQuality,growth:drawGrowth,analytics:drawAdvanced,catalog:drawCatalog};
+  const render=renderers[page];if(render){render();RENDERED_PAGES.add(page)}
+ };
+ document.querySelectorAll('[data-range]').forEach(b=>b.addEventListener('click',()=>window.dispatchEvent(new CustomEvent('shad:range-change',{detail:{range:String(RANGE)}}))));
+ if(typeof DATA!=='undefined'&&DATA&&TABLES){try{renderCurrentPage(true);window.dispatchEvent(new CustomEvent('shad:range-change',{detail:{range:String(RANGE)}}))}catch(e){console.error('Range-aware redraw failed',e)}}
+})();
 loadData();
