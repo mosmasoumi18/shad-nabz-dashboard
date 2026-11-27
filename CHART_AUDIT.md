@@ -116,8 +116,9 @@ Source package: 115 files (108 CSV, 7 Excel workbooks), 213 tables/sheets.
 
 ## Verification status
 
-- JavaScript syntax parsing: passed after changes.
+- TypeScript and production bundle: passed on Railway (`tsc -b && vite build`; Vite reported 35 modules transformed and build completed).
 - Advanced definitions: 18 present; 0 embedded series remain.
 - Source table/field mappings for all 18 advanced charts: checked against the supplied CSV/Excel schemas.
 - Main chart call sites: 32 found and mapped to source tables.
-- Railway: source changes are committed to GitHub `main`; the Railway production build and runtime verification are being checked against the final commit.
+- Railway production: deployment `eebb3f47-fd10-4ff3-845c-abeb4ace3434` reached terminal `SUCCESS` on 2026-11-27; deployed Git commit `ac46c026e03fe1b0016ee98f527ee1baa1718dfc`.
+- A desktop/tablet/mobile screenshot review remains a separate visual QA step; the deployment result is not presented as a screenshot-based visual sign-off.
