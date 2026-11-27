@@ -182,53 +182,100 @@ function advAligned(a,b){let m=new Map(advValid(b));return advValid(a).filter(([
 function advDiff(s){let a=advValid(s);return {points:a.slice(1).map(([d,v],i)=>[a[i][0]+' → '+d,+v-Number(a[i][1])])}}
 function advCorr(a,b){if(a.length<30)return null;let x=advMean(a),y=advMean(b),sx=advSd(a),sy=advSd(b);return sx&&sy?advMean(a.map((v,i)=>(v-x)*(b[i]-y)))/(sx*sy):null}
 function drawAdvancedChart(div,chart){
- const ss=advSeries(chart),kind=chart.kind,traces=[];let extra={},note=chart.note||'روند مقدار ثبت‌شده؛ تغییرات به‌تنهایی دلیل علّی نیستند.';
- if(!window.Plotly){div.innerHTML='<div class="chart-empty">کتابخانه نمودار بارگذاری نشد؛ اتصال شبکه را بررسی کنید.</div>';return}
- if(!ss.some(s=>advValid(s).length)){div.innerHTML='<div class="chart-empty">در بازه انتخابی داده معتبر وجود ندارد.</div>';return}
- const line=s=>({type:'scatter',mode:'lines',name:s.name,x:s.points.map(p=>p[0]),y:s.points.map(p=>p[1]),customdata:s.points.map(p=>jalaliTick(p[0])+' · '+fmtFull(+p[1])+(chart.unit?' '+chart.unit:'')),hovertemplate:'%{customdata}<extra>%{fullData.name}</extra>',connectgaps:false,line:{width:2.1}});
- const xy=s=>({x:s.points.map(p=>p[0]),y:s.points.map(p=>p[1]),customdata:s.points.map(p=>jalaliTick(p[0])+' · '+fmtFull(+p[1])+(chart.unit?' '+chart.unit:'')),hovertemplate:'%{customdata}<extra>%{fullData.name}</extra>'});
+ const ss=advSeries(chart),kind=chart.kind,W=900,H=340,L=72,R=28,T=26,B=64,iw=W-L-R,ih=H-T-B;
+ const css=getComputedStyle(document.documentElement),C={
+  teal:css.getPropertyValue('--teal').trim()||'#087f78',
+  blue:css.getPropertyValue('--blue').trim()||'#3269b4',
+  amber:css.getPropertyValue('--amber').trim()||'#bf7d27',
+  rose:css.getPropertyValue('--rose').trim()||'#c45f69',
+  violet:css.getPropertyValue('--violet').trim()||'#7565b5',
+  ink:css.getPropertyValue('--ink').trim()||'#1c2b3a',
+  muted:css.getPropertyValue('--muted').trim()||'#6f7e8f',
+  line:css.getPropertyValue('--line').trim()||'#e5ebf1',
+  surface:css.getPropertyValue('--surface').trim()||'#fff'
+ };
+ const colors=[C.teal,C.blue,C.amber,C.violet,C.rose,'#258c69','#617b8c','#2ba6af'];
+ const escSvg=v=>String(v??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+ const fa=v=>Number(v).toLocaleString('fa-IR',{maximumFractionDigits:1});
+ const short=v=>{let a=Math.abs(v);return a>=1e9?fa(v/1e9)+' میلیارد':a>=1e6?fa(v/1e6)+' میلیون':a>=1e3?fa(v/1e3)+' هزار':fa(v)};
+ const valid=ss.map(s=>({...s,points:advValid(s).map(p=>[String(p[0]),Number(p[1])])}));
+ if(!valid.some(s=>s.points.length)){div.innerHTML='<div class="chart-empty">در بازه انتخابی داده معتبر وجود ندارد.</div>';return}
+ let note=chart.note||'تحلیل اکتشافی بر اساس داده‌های ثبت‌شده؛ همبستگی به معنی رابطه علّی نیست.';
+ let body='',legend='',defs='<defs><linearGradient id="advArea" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="'+C.teal+'" stop-opacity=".20"/><stop offset="1" stop-color="'+C.teal+'" stop-opacity="0"/></linearGradient></defs>';
+ const txt=(x,y,v,anchor='middle',size=12,color=C.muted,weight=500)=>'<text x="'+x+'" y="'+y+'" text-anchor="'+anchor+'" font-family="Vazirmatn,Tahoma,Arial,sans-serif" font-size="'+size+'" font-weight="'+weight+'" fill="'+color+'">'+escSvg(v)+'</text>';
+ const rect=(x,y,w,h,fill,rx=5,stroke='none')=>'<rect x="'+x+'" y="'+y+'" width="'+Math.max(0,w)+'" height="'+Math.max(0,h)+'" rx="'+rx+'" fill="'+fill+'" stroke="'+stroke+'"/>';
+ const line=(x1,y1,x2,y2,stroke=C.line,dash='')=>'<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="'+stroke+'" stroke-width="1" '+(dash?'stroke-dasharray="'+dash+'"':'')+'/>';
+ const circle=(x,y,r,fill,title='')=>'<circle cx="'+x+'" cy="'+y+'" r="'+r+'" fill="'+fill+'">'+(title?'<title>'+escSvg(title)+'</title>':'')+'</circle>';
+ const frame=(min,max,unit)=>{if(max===min){max+=Math.abs(max)*.1||1;min-=Math.abs(min)*.1||1}const span=max-min;let g='';for(let i=0;i<5;i++){let v=max-span*i/4,y=T+ih*i/4;g+=line(L,y,W-R,y,C.line)+txt(L-12,y+4,short(v), 'end',10,C.muted)}g+=txt(W-R,T-8,unit||'', 'end',10,C.muted);return {g,x:i=>L+(i/(Math.max(1,frame.count-1)))*iw,y:v=>T+(max-v)/span*ih,min,max}};
+ const wrap=()=>'<svg class="advanced-svg" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+escSvg(chart.title)+'" preserveAspectRatio="xMidYMid meet">'+defs+body+'</svg>';
+ const xLabels=dates=>{let out='',n=Math.min(6,dates.length);for(let i=0;i<n;i++){let j=Math.round(i*(dates.length-1)/Math.max(1,n-1));out+=txt(L+j*iw/Math.max(1,dates.length-1),H-22,dates[j].slice(5),'middle',10,C.muted)}return out};
  if(kind==='box'||kind==='histogram'){
-   traces.push(...ss.map(s=>kind==='box'?{type:'box',name:s.name,y:advValid(s).map(p=>+p[1]),customdata:advValid(s).map(p=>fmtFull(+p[1])),hovertemplate:'%{customdata}<extra>%{fullData.name}</extra>',boxpoints:'outliers',jitter:.25,pointpos:0}:{type:'histogram',name:s.name,x:advValid(s).map(p=>+p[1]),customdata:advValid(s).map(p=>fmtFull(+p[1])),hovertemplate:'%{customdata}<extra>%{fullData.name}</extra>',nbinsx:30,opacity:.72}));
-   if(kind==='histogram')extra={barmode:'overlay'};
+  const values=valid.map(s=>s.points.map(p=>p[1])).flat(),mn=Math.min(...values),mx=Math.max(...values);
+  const f=frame(mn,mx,chart.unit);body+=f.g;
+  if(kind==='box'){
+   const q=a=>{let b=a.slice().sort((x,y)=>x-y),p=(b.length-1)*a;return b[Math.floor(p)]*(1-(p%1))+b[Math.ceil(p)]*(p%1)};
+   valid.forEach((s,i)=>{let a=s.points.map(p=>p[1]).sort((x,y)=>x-y);if(!a.length)return;const quant=p=>{let k=(a.length-1)*p,lo=Math.floor(k),hi=Math.ceil(k);return a[lo]*(hi-k)+a[hi]*(k-lo)};let q1=quant(.25),med=quant(.5),q3=quant(.75),iqr=q3-q1,low=Math.max(a[0],q1-1.5*iqr),high=Math.min(a[a.length-1],q3+1.5*iqr),x=L+(i+.5)*iw/valid.length,bw=Math.min(88,iw/valid.length*.48),col=colors[i%colors.length];body+=line(x,f.y(low),x,f.y(high),col)+line(x-bw/3,f.y(low),x+bw/3,f.y(low),col)+line(x-bw/3,f.y(high),x+bw/3,f.y(high),col)+rect(x-bw/2,f.y(q3),bw,Math.max(2,f.y(q1)-f.y(q3)),col,5)+line(x-bw/2,f.y(med),x+bw/2,f.y(med),C.surface,'')+txt(x,H-24,s.name,'middle',11,C.ink);a.forEach(v=>{if(v<low||v>high)body+=circle(x,f.y(v),3,C.rose,fa(v))})});
+   note='نمودار جعبه‌ای: میانه، چارک‌ها و نقاط پرت بر اساس مشاهدات همین بازه.';
+  }else{
+   const bins=12,step=(mx-mn||1)/bins,counts=Array(bins).fill(0);values.forEach(v=>counts[Math.min(bins-1,Math.floor((v-mn)/step))]++);const max=Math.max(1,...counts);
+   counts.forEach((n,i)=>{let bw=iw/bins-4,x=L+i*iw/bins,y=T+ih-n/max*ih;body+=rect(x,y,bw,n/max*ih,colors[0],4)+txt(x+bw/2,H-24,short(mn+i*step),'middle',9,C.muted)});
+   body+=txt(W/2,15,'فراوانی مشاهدات','middle',11,C.ink,700);note='هیستوگرام توزیع مقادیر؛ هر ستون تعداد مشاهدات در یک بازه مقداری را نشان می‌دهد.';
+  }
  }else if(kind==='scatter'){
-   let pairs=advAligned(ss[0],ss[1]);traces.push({type:'scatter',mode:'markers',name:'مشاهدات هم‌تاریخ',x:pairs.map(p=>p[1]),y:pairs.map(p=>p[2]),customdata:pairs.map(p=>[jalaliTick(p[0]),fmtFull(p[1]),fmtFull(p[2])]),hovertemplate:'%{customdata[0]}<br>'+ss[0].name+': %{customdata[1]}<br>'+ss[1].name+': %{customdata[2]}<extra></extra>',marker:{size:6,opacity:.58,color:ADVANCED_COLORS[0]}});
-   extra={xaxis:{title:ss[0].name},yaxis:{title:ss[1].name}};note='تعداد جفت هم‌تاریخ: '+pairs.length+'؛ پراکندگی مشاهده‌ای است و رابطه علّی را اثبات نمی‌کند.';
+  let a=valid[0]?.points||[],b=valid[1]?.points||[],map=new Map(b),pairs=a.filter(p=>map.has(p[0])).map(p=>[p[0],p[1],map.get(p[0])[1]]);
+  if(!pairs.length){div.innerHTML='<div class="chart-empty">داده‌ی هم‌تاریخ کافی برای مقایسه وجود ندارد.</div>';return}
+  let xs=pairs.map(p=>p[1]),ys=pairs.map(p=>p[2]),xmin=Math.min(...xs),xmax=Math.max(...xs),ymin=Math.min(...ys),ymax=Math.max(...ys);if(xmin===xmax)xmax++;if(ymin===ymax)ymax++;
+  const px=v=>L+(v-xmin)/(xmax-xmin)*iw,py=v=>T+(ymax-v)/(ymax-ymin)*ih;
+  for(let i=0;i<5;i++){let v=ymax-(ymax-ymin)*i/4,y=T+ih*i/4;body+=line(L,y,W-R,y)+txt(L-12,y+4,short(v),'end',10)}
+  pairs.forEach(p=>body+=circle(px(p[1]),py(p[2]),4,colors[0],p[0]+' · '+fa(p[1])+' / '+fa(p[2])));
+  body+=txt(W/2,H-12,valid[0].name+' · '+(chart.unit||''),'middle',11,C.ink)+txt(20,H/2,valid[1].name,'middle',11,C.ink);
+  note='تعداد جفت‌های هم‌تاریخ: '+fa(pairs.length)+'؛ نقاط، دو شاخص را در تاریخ مشترک مقایسه می‌کنند و رابطه علّی را اثبات نمی‌کنند.';
  }else if(kind==='heatmap'){
-   if(ss.length>1){let dates=[...new Set(ss.flatMap(s=>s.points.map(p=>p[0])))].sort();traces.push({type:'heatmap',x:dates,y:ss.map(s=>s.name),z:ss.map(s=>{let m=new Map(s.points);return dates.map(d=>m.has(d)?Number(m.get(d)):null)}),colorscale:[[0,ADVANCED_COLORS[0]],[1,ADVANCED_COLORS[1]]],hoverongaps:false})}
-   else{let a=advValid(ss[0]),norm=a.map(p=>[String(p[0]).replace(/\//g,'-'),Number(p[1])]),months=[...new Set(norm.map(p=>p[0].slice(0,7)))].sort(),m=new Map(norm);traces.push({type:'heatmap',x:Array.from({length:31},(_,i)=>i+1),y:months,z:months.map(mon=>Array.from({length:31},(_,i)=>m.get(mon+'-'+String(i+1).padStart(2,'0'))??null)),colorscale:[[0,ADVANCED_COLORS[0]],[1,ADVANCED_COLORS[1]]],hoverongaps:false,colorbar:{title:chart.unit||'مقدار'}});note='نقشه حرارتی تقویم شمسی؛ خانه خالی به معنی نبود رکورد در منبع است.'}
- }else if(kind==='control'||kind==='forecast'){
-   let a=advValid(ss[0]);traces.push(line(ss[0]));
-   if(a.length>=30){
-     if(kind==='control'){const w=30,x=[],midLine=[],upper=[],lower=[],outX=[],outY=[];for(let i=w;i<a.length;i++){const hist=a.slice(i-w,i).map(p=>+p[1]),m=advMean(hist),sd=advSd(hist),v=+a[i][1],d=a[i][0];x.push(d);midLine.push(m);upper.push(m+3*sd);lower.push(Math.max(0,m-3*sd));if(Math.abs(v-m)>3*sd){outX.push(d);outY.push(v)}}traces.push({type:'scatter',mode:'lines',name:'میانگین متحرک ۳۰ مشاهده',x,y:midLine,line:{dash:'dot',color:ADVANCED_COLORS[6]}});traces.push({type:'scatter',mode:'lines',name:'حد بالای متحرک',x,y:upper,line:{dash:'dash',color:ADVANCED_COLORS[4]}});traces.push({type:'scatter',mode:'lines',name:'حد پایین متحرک',x,y:lower,line:{dash:'dash',color:ADVANCED_COLORS[4]}});traces.push({type:'scatter',mode:'markers',name:'بیرون از محدوده',x:outX,y:outY,marker:{color:ADVANCED_COLORS[4],size:8}});note='رصد اکتشافی با میانگین و حدود ±۳ انحراف معیارِ ۳۰ مشاهده پیشین؛ '+outX.length+' نقطه بیرون از محدوده. این نمودار جایگزین کنترل‌چارت فرایندی با تعدیل روند و فصل‌مندی نیست.'}
-     else{const train=a.slice(0,-1),pred=advMean(train.slice(-7).map(p=>+p[1])),errors=[];for(let i=Math.max(7,train.length-30);i<train.length;i++)errors.push(Math.abs(+train[i][1]-advMean(train.slice(i-7,i).map(p=>+p[1]))));traces[0]=line({...ss[0],points:train});traces.push({type:'scatter',mode:'lines+markers',name:'پیش‌بینی مبنا',x:[train.at(-1)[0],...Array.from({length:7},(_,i)=>'گام +'+(i+1))],y:[+train.at(-1)[1],...Array(7).fill(pred)],line:{dash:'dash',color:ADVANCED_COLORS[2]}});note='پیش‌بینی مبنا با میانگین ۷ مشاهده قبلی؛ MAE آزمون غلتان '+(errors.length?advMean(errors).toLocaleString('fa-IR',{maximumFractionDigits:2}):'—')+'؛ گام‌های آینده تعداد مشاهده‌اند، نه روز تقویمی.'}
-   }else note='حداقل ۳۰ مشاهده معتبر لازم است.';
- }else if(['pareto','treemap','sunburst'].includes(kind)){
-   let rows=ss.map(s=>({name:s.name,v:advValid(s).reduce((a,p)=>a+Number(p[1]),0)})).filter(r=>r.v>=5).sort((a,b)=>b.v-a.v),total=rows.reduce((a,r)=>a+r.v,0);
-   if(kind==='pareto'){let top=rows.slice(0,12),acc=0;traces.push({type:'bar',x:top.map(r=>r.name),y:top.map(r=>r.v),name:'مجموع گزارش‌شده'});traces.push({type:'scatter',mode:'lines+markers',x:top.map(r=>r.name),y:top.map(r=>100*(acc+=r.v)/Math.max(1,total)),yaxis:'y2',name:'درصد تجمعی'});extra={yaxis2:{overlaying:'y',side:'right',range:[0,100]},xaxis:{tickangle:-25},margin:{b:120,l:65,r:55,t:20}}}
-   else{let parents=new Map();for(let r of rows){let p=r.name.split(' / ')[0];parents.set(p,(parents.get(p)||0)+r.v)}let ids=['root',...parents.keys(),...rows.map(r=>'leaf:'+r.name)];traces.push({type:kind,ids,labels:['دلایل تماس',...parents.keys(),...rows.map(r=>r.name.split(' / ').slice(1).join(' / '))],parents:['',...Array(parents.size).fill('root'),...rows.map(r=>r.name.split(' / ')[0])],values:[total,...parents.values(),...rows.map(r=>r.v)],branchvalues:'total',textinfo:'label+percent parent'})}
-   note='تجمیع سری‌های منبع در بازه انتخابی؛ دسته‌های با مقدار کمتر از ۵ نمایش داده نشده‌اند.';
+  if(valid.length>1){
+   const dates=[...new Set(valid.flatMap(s=>s.points.map(p=>p[0])))].sort(),cellW=iw/Math.max(1,dates.length),cellH=Math.min(38,ih/valid.length);
+   valid.forEach((s,ri)=>{let m=new Map(s.points);body+=txt(L-10,T+ri*cellH+cellH*.65,s.name,'end',10,C.ink);dates.forEach((d,ci)=>{let v=m.get(d)?.[1];if(v===undefined)return;let all=valid.flatMap(x=>x.points.map(p=>p[1])),lo=Math.min(...all),hi=Math.max(...all),alpha=.18+.82*(v-lo)/(hi-lo||1);body+=rect(L+ci*cellW,T+ri*cellH,Math.max(1,cellW-2),cellH-2,'color-mix(in srgb, '+C.teal+' '+(alpha*100)+'%, '+C.surface+')',3)+ '<title>'+escSvg(d+' · '+fa(v))+'</title>'})});
+   body+=txt(W/2,H-10,'تاریخ جلالی','middle',10);
+  }else{
+   let pts=valid[0].points,months=[...new Set(pts.map(p=>p[0].slice(0,7)))].sort(),m=new Map(pts),max=Math.max(1,...pts.map(p=>p[1])),cellW=iw/31,cellH=Math.min(40,ih/Math.max(1,months.length));
+   months.forEach((mon,ri)=>{body+=txt(L-10,T+ri*cellH+cellH*.65,mon,'end',10,C.ink);for(let d=1;d<=31;d++){let key=mon+'/'+String(d).padStart(2,'0'),v=m.get(key)?.[1];if(v===undefined){key=mon+'-'+String(d).padStart(2,'0');v=m.get(key)?.[1]}if(v===undefined)continue;let opacity=.14+.86*v/max;body+=rect(L+(d-1)*cellW,T+ri*cellH,cellW-2,cellH-3,'color-mix(in srgb, '+C.teal+' '+(opacity*100)+'%, '+C.surface+')',3)+'<title>'+escSvg(key+' · '+fa(v))+'</title>'}});
+   body+=txt(W/2,H-10,'روز ماه','middle',10);note='نقشه حرارتی تقویم شمسی؛ شدت رنگ مقدار ثبت‌شده و خانه خالی به معنی نبود رکورد است.';
+  }
+ }else if(kind==='control'||kind==='forecast'||kind==='line'||kind==='bar'){
+  const dates=[...new Set(valid.flatMap(s=>s.points.map(p=>p[0])))].sort(),mapDates=new Set(dates),all=valid.flatMap(s=>s.points.map(p=>p[1])),min=Math.min(0,...all),max=Math.max(...all),f=frame(min,max,chart.unit);body+=f.g;
+  const x=d=>L+dates.indexOf(d)*iw/Math.max(1,dates.length-1),y=v=>T+(f.max-v)/(f.max-f.min)*ih;
+  valid.forEach((s,si)=>{let m=new Map(s.points),path='',drawing=false;dates.forEach(d=>{if(m.has(d)){path+=(drawing?' L ':'M ')+x(d)+' '+y(m.get(d)[1]);drawing=true}else drawing=false});if(kind==='bar'){s.points.forEach(p=>body+=rect(x(p[0])-Math.min(16,iw/dates.length*.32),y(p[1]),Math.min(32,iw/dates.length*.64),T+ih-y(p[1]),colors[si%colors.length],4))}else{body+='<path d="'+path+'" fill="none" stroke="'+colors[si%colors.length]+'" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>';s.points.forEach(p=>body+=circle(x(p[0]),y(p[1]),2.8,colors[si%colors.length],s.name+' · '+p[0]+' · '+fa(p[1]))) }});
+  if(kind==='control'||kind==='forecast'){
+   let a=valid[0].points,w=30,mid=[],upper=[],lower=[],out=[];
+   if(kind==='control'&&a.length>w){for(let i=w;i<a.length;i++){let hist=a.slice(i-w,i).map(p=>p[1]),avg=hist.reduce((u,v)=>u+v,0)/hist.length,sd=Math.sqrt(hist.reduce((u,v)=>u+(v-avg)*(v-avg),0)/hist.length),v=a[i][1];mid.push([a[i][0],avg]);upper.push([a[i][0],avg+3*sd]);lower.push([a[i][0],Math.max(0,avg-3*sd)]);if(Math.abs(v-avg)>3*sd)out.push(a[i])}const drawBand=(arr,col,dash)=>{let p=arr.map((v,i)=>(i?'L':'M')+x(v[0])+' '+y(v[1])).join(' ');return '<path d="'+p+'" fill="none" stroke="'+col+'" stroke-width="1.8" stroke-dasharray="'+dash+'"/>'};body+=drawBand(mid,C.blue,'3 4')+drawBand(upper,C.rose,'6 4')+drawBand(lower,C.rose,'6 4');out.forEach(p=>body+=circle(x(p[0]),y(p[1]),6,C.rose,'نقطه خارج از حدود · '+p[0]+' · '+fa(p[1])));note='حدود اکتشافی بر پایه ۳۰ مشاهده پیشین؛ '+fa(out.length)+' نقطه بیرون از محدوده. روند و فصل‌مندی به‌طور کامل تعدیل نشده‌اند.'}
+   if(kind==='forecast'&&a.length>8){let train=a.slice(0,-1),tail=train.slice(-7),pred=tail.reduce((u,p)=>u+p[1],0)/tail.length,last=train[train.length-1];body+=line(x(last[0]),y(last[1]),W-R,y(pred),C.amber,'7 5')+circle(W-R,y(pred),5,C.amber,'پیش‌بینی مبنا · '+fa(pred));note='پیش‌بینی ساده با میانگین ۷ مشاهده اخیر؛ صرفاً مبنای مقایسه است و تضمین دقت ندارد.'}
+  }
+  body+=xLabels(dates);
+  legend=valid.map((s,i)=>'<span><i style="background:'+colors[i%colors.length]+'"></i>'+escSvg(s.name)+'</span>').join('');
+ }else if(kind==='pareto'||kind==='treemap'||kind==='sunburst'){
+  let rows=valid.map(s=>({name:s.name,v:s.points.reduce((u,p)=>u+p[1],0)})).filter(r=>r.v>=5).sort((a,b)=>b.v-a.v).slice(0,kind==='pareto'?12:20),total=rows.reduce((u,r)=>u+r.v,0);
+  if(!rows.length){div.innerHTML='<div class="chart-empty">داده‌ی کافی برای این تحلیل وجود ندارد.</div>';return}
+  if(kind==='pareto'){
+   let max=Math.max(...rows.map(r=>r.v)),acc=0,points=[];
+   rows.forEach((r,i)=>{let bw=iw/rows.length-8,x=L+i*iw/rows.length,h=r.v/max*ih,y=T+ih-h;body+=rect(x,y,bw,h,colors[i%colors.length],5)+txt(x+bw/2,H-28,r.name.slice(0,14),'middle',10,C.ink);acc+=r.v;points.push([x+bw/2,T+ih-(acc/total)*ih])});
+   body+='<polyline points="'+points.map(p=>p.join(',')).join(' ')+'" fill="none" stroke="'+C.rose+'" stroke-width="3"/>';points.forEach((p,i)=>body+=circle(p[0],p[1],4,C.rose,fa(100*rows.slice(0,i+1).reduce((u,r)=>u+r.v,0)/total)+'٪ تجمعی'));body+=txt(W-R,T+12,'٪ تجمعی','end',10,C.rose);
+  }else{
+   let x=L,y=T,rowH=ih/rows.length;
+   rows.forEach((r,i)=>{let w=iw*r.v/Math.max(1,total);body+=rect(x,y,Math.max(2,w-3),rowH-4,colors[i%colors.length],5)+txt(x+w/2,y+rowH*.58,r.name.slice(0,22),'middle',10,'#fff',700)+ '<title>'+escSvg(r.name+' · '+fa(r.v))+'</title>';x+=w;y+=rowH;if(x>L+iw-1){x=L}});
+   note='نمای ترکیب دسته‌ها بر اساس مجموع مقدار ثبت‌شده در بازه؛ مقادیر کوچک‌تر از ۵ برای خوانایی کنار گذاشته شده‌اند.';
+  }
  }else if(kind==='correlation'||kind==='network'){
-   let ds=ss.map(advDiff),z=ds.map(s=>ds.map(t=>{let p=advAligned(s,t);return advCorr(p.map(x=>x[1]),p.map(x=>x[2]))}));
-   if(kind==='correlation')traces.push({type:'heatmap',x:ss.map(s=>s.name),y:ss.map(s=>s.name),z,zmin:-1,zmax:1,colorscale:'RdBu',hoverongaps:false});
-   else{let pos=ss.map((_,i)=>[Math.cos(2*Math.PI*i/ss.length),Math.sin(2*Math.PI*i/ss.length)]),edges=0;for(let i=0;i<ss.length;i++)for(let j=i+1;j<ss.length;j++){let r=z[i][j];if(r!==null&&Math.abs(r)>=.5){edges++;traces.push({type:'scatter',mode:'lines',x:[pos[i][0],pos[j][0]],y:[pos[i][1],pos[j][1]],text:['r='+r.toFixed(2),'r='+r.toFixed(2)],hoverinfo:'text',showlegend:false,line:{width:1+4*Math.abs(r),color:r>0?ADVANCED_COLORS[0]:ADVANCED_COLORS[4]}})}}traces.push({type:'scatter',mode:'markers+text',x:pos.map(p=>p[0]),y:pos.map(p=>p[1]),text:ss.map(s=>s.name),textposition:'top center',marker:{size:22,color:ADVANCED_COLORS[1]},showlegend:false});extra={xaxis:{visible:false,range:[-1.35,1.35]},yaxis:{visible:false,range:[-1.3,1.3]}};note=edges+' یال با |r|≥۰٫۵؛ همبستگی تغییرات در تاریخ‌های مشترک.'}
- }else if(kind==='bar'){traces.push(...ss.map(s=>({type:'bar',name:s.name,...xy(s)})))}
- else{traces.push(...ss.map(line))}
- const theme=getComputedStyle(div.parentElement||div),paper=theme.backgroundColor||getComputedStyle(document.body).backgroundColor;
-  const dates=[...new Set(ss.flatMap(s=>advValid(s).map(p=>String(p[0]))))].sort();
-  const axisTicks=(values,suffix='')=>{const valid=values.map(Number).filter(Number.isFinite);if(!valid.length)return {};let lo=Math.min(0,...valid),hi=Math.max(...valid);if(hi===lo)hi=lo+1;const vals=Array.from({length:5},(_,i)=>lo+(hi-lo)*i/4);return {tickmode:'array',tickvals:vals,ticktext:vals.map(v=>compact(v)+suffix)}};
-  const dateAxis=dates.length?{type:'category',autorange:'reversed',categoryorder:'array',categoryarray:dates.slice().reverse(),tickmode:'array',tickvals:dates.filter((_,i)=>i===0||i===dates.length-1||i%Math.max(1,Math.ceil(dates.length/6))===0),ticktext:dates.filter((_,i)=>i===0||i===dates.length-1||i%Math.max(1,Math.ceil(dates.length/6))===0).map(jalaliTick),gridcolor:themeColor('--border'),automargin:true}:{type:'category',autorange:'reversed',gridcolor:themeColor('--border'),automargin:true};
-  const yValues=traces.flatMap(t=>Array.isArray(t.y)?t.y.filter(v=>Number.isFinite(Number(v))).map(Number):[]);
-  const xValues=traces.flatMap(t=>Array.isArray(t.x)?t.x.filter(v=>typeof v==='number'&&Number.isFinite(v)).map(Number):[]);
-  let layout={height:350,autosize:true,font:{family:'Vazirmatn, Tahoma, Arial',size:12,color:themeColor('--foreground','--ink')},colorway:ADVANCED_COLORS,paper_bgcolor:paper,plot_bgcolor:paper,margin:{l:55,r:65,t:28,b:76},legend:{orientation:'h',y:-.28},hovermode:'closest',separators:'٫٬',xaxis:{...dateAxis},yaxis:{side:'right',gridcolor:themeColor('--border'),automargin:true,title:chart.unit||'',...axisTicks(yValues)},...extra};
-  if(kind==='histogram'){layout.xaxis={side:'bottom',title:chart.unit||'مقدار',gridcolor:themeColor('--border'),...axisTicks(xValues)};const count=Math.max(1,...ss.map(s=>advValid(s).length));layout.yaxis={side:'right',title:'فراوانی',gridcolor:themeColor('--border'),...axisTicks([0,count])}}
-  else if(kind==='box'){layout.xaxis={side:'bottom',...axisTicks(xValues)};layout.yaxis={side:'right',title:chart.unit||'مقدار',gridcolor:themeColor('--border'),...axisTicks(yValues)}}
-  else if(kind==='heatmap'){if(dates.length)layout.xaxis={...dateAxis};layout.yaxis={side:'right',gridcolor:themeColor('--border')}}
-  else if(kind==='correlation'){delete layout.xaxis;delete layout.yaxis}
-  else if(kind==='scatter'){layout.xaxis={side:'bottom',title:(ss[0]?.name||'X')+' · '+(chart.unit||''),gridcolor:themeColor('--border'),...axisTicks(xValues)};layout.yaxis={side:'right',title:(ss[1]?.name||'Y')+' · '+(chart.unit||''),gridcolor:themeColor('--border'),...axisTicks(yValues)}}
-  else if(kind==='treemap'||kind==='sunburst'){delete layout.xaxis;delete layout.yaxis;layout.margin={l:4,r:4,t:8,b:8}}
-  else if(kind==='network'){delete layout.xaxis;delete layout.yaxis}
-  Plotly.newPlot(div,traces,layout,{responsive:true,displaylogo:false,locale:'fa',modeBarButtonsToRemove:['lasso2d','select2d'],toImageButtonOptions:{format:'png',filename:chart.id}});
-  let computed=div.parentElement.querySelector('.computed');if(computed)computed.textContent=note;
+  const diffs=valid.map(s=>s.points.slice(1).map((p,i)=>[p[0],p[1]-s.points[i][1]]));
+  const corr=(a,b)=>{let mb=new Map(b),pairs=a.filter(p=>mb.has(p[0])).map(p=>[p[1],mb.get(p[0])]);if(pairs.length<30)return null;let ax=pairs.reduce((u,p)=>u+p[0],0)/pairs.length,ay=pairs.reduce((u,p)=>u+p[1],0)/pairs.length,n=0,dx=0,dy=0;pairs.forEach(p=>{n+=(p[0]-ax)*(p[1]-ay);dx+=(p[0]-ax)**2;dy+=(p[1]-ay)**2});return dx&&dy?n/Math.sqrt(dx*dy):null};
+  let z=diffs.map(a=>diffs.map(b=>corr(a,b))),n=valid.length,cell=Math.min(iw/n,ih/n);
+  z.forEach((row,i)=>row.forEach((v,j)=>{let strength=v===null?0:Math.abs(v),col=v===null?C.line:(v>=0?C.teal:C.rose),x=L+j*iw/n,y=T+i*ih/n;body+=rect(x+2,y+2,iw/n-4,ih/n-4,col,4)+txt(x+iw/n/2,y+ih/n/2+4,v===null?'—':fa(v),'middle',11,'#fff',800);if(i===0)body+=txt(x+iw/n/2,T-8,valid[j].name.slice(0,12),'middle',9,C.muted);if(j===0)body+=txt(L-8,y+ih/n/2+4,valid[i].name.slice(0,12),'end',9,C.muted)}));
+  note='همبستگی تغییرات متوالی هم‌تاریخ؛ حداقل ۳۰ جفت مشترک. خانه خالی یعنی نمونه کافی یا واریانس لازم وجود ندارد.';
+ }else{
+  const dates=[...new Set(valid.flatMap(s=>s.points.map(p=>p[0])))].sort(),all=valid.flatMap(s=>s.points.map(p=>p[1])),f=frame(Math.min(0,...all),Math.max(...all),chart.unit);body+=f.g;
+  valid.forEach((s,si)=>{let m=new Map(s.points),d='',drawing=false;dates.forEach((date,i)=>{if(m.has(date)){d+=(drawing?' L ':'M ')+(L+i*iw/Math.max(1,dates.length-1))+' '+(T+(f.max-m.get(date)[1])/(f.max-f.min)*ih);drawing=true}else drawing=false});body+='<path d="'+d+'" fill="none" stroke="'+colors[si%colors.length]+'" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>';});
+  body+=xLabels(dates);legend=valid.map((s,i)=>'<span><i style="background:'+colors[i%colors.length]+'"></i>'+escSvg(s.name)+'</span>').join('');
+ }
+ div.innerHTML=wrap()+(legend?'<div class="legend">'+legend+'</div>':'');
+ let computed=div.parentElement.querySelector('.computed');if(computed)computed.textContent=note;
 }
 function drawAdvanced(){
  const root=$('advancedCharts');if(!root)return;
