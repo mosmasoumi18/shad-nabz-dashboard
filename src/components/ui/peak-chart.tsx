@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
 import { cn } from "@/lib/utils";
 export type PeakPoint = { date: string; value: number };
 type Period = "weekly" | "monthly" | "yearly";
@@ -30,7 +30,7 @@ export function PeakChart({data,title="روند فعالیت روزانه",subti
   const animate=()=>{progress=Math.min(1,progress+.045);draw();if(progress<1)raf=requestAnimationFrame(animate)};
   const ro=new ResizeObserver(()=>draw());ro.observe(wrap);raf=requestAnimationFrame(animate);return()=>{dead=true;cancelAnimationFrame(raf);ro.disconnect()};
  },[points,visible,hoverIndex]);
- const onMove=(e:React.PointerEvent<HTMLCanvasElement>)=>{const r=e.currentTarget.getBoundingClientRect(),px=Math.max(0,Math.min(r.width-82,e.clientX-r.left-64));setHoverIndex(points.length<2?0:Math.round(px/Math.max(1,r.width-82)*(points.length-1)))};
+ const onMove=(e:PointerEvent<HTMLCanvasElement>)=>{const r=e.currentTarget.getBoundingClientRect(),px=Math.max(0,Math.min(r.width-82,e.clientX-r.left-64));setHoverIndex(points.length<2?0:Math.round(px/Math.max(1,r.width-82)*(points.length-1)))};
  const current=hoverIndex!==null?points[hoverIndex]:points.at(-1);
  return <section ref={wrapRef} className={cn("rounded-2xl border border-white/10 bg-[#0c2114]/75 p-4 shadow-xl shadow-black/10 backdrop-blur-xl",className)}>
   <div className="mb-3 flex flex-wrap items-start justify-between gap-3"><div><p className="text-sm font-bold text-emerald-50">{title}</p><p className="mt-1 text-xs text-emerald-100/55">{subtitle}</p></div>
