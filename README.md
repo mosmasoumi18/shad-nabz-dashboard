@@ -1,28 +1,42 @@
 # SHAD | Nabz — React Product Intelligence Dashboard
 
-داشبورد فارسی و RTL با React، TypeScript، Vite و Tailwind CSS. ساختار و منطق تحلیلی قبلی حفظ شده تا ماژول‌ها، جداول، فیلترها و نمودارها در مهاجرت حذف نشوند. نمودار PeakChart به‌صورت کامپوننت React مستقل و متصل به سری واقعی DailyActivity اضافه شده است.
+داشبورد فارسی و راست‌به‌چپ شاد برای هوش محصول و تحلیل داده.
 
-## توسعه
+## داده‌های منبع
+- ۱۱۵ فایل منبع: ۱۰۸ فایل CSV و ۷ فایل Excel.
+- ۲۱۳ جدول و شیت استخراج‌شده.
+- ۱۷۶٬۲۱۹ رکورد بسته‌بندی‌شده در `data.json.gz`.
+- ۳۹ ردیف کاملاً خالی از شمارش رکوردها کنار گذاشته شده‌اند.
+- برچسب‌های تاریخ جلالی حفظ شده‌اند و مقادیر گمشده به صفر تبدیل نمی‌شوند.
+- فایل خام `Data.zip` شامل اطلاعات هویتی در EventApiLog است و در مسیر عمومی قرار نمی‌گیرد. در بسته داشبورد، این منبع فقط به ۳ ردیف تجمیعی تاریخ/وضعیت تبدیل شده است؛ شماره تلفن و شناسه ملی منتشر نمی‌شود.
+- جدول ممیزی ورود تماشا نیز بدون ستون‌های Username و Error_Message بسته‌بندی شده است.
+
+## ماژول‌ها
+نمای کلان، پیام‌رسان، تماشا و تعامل، جست‌وجو، ترافیک و درآمد، مرکز تماس، کیفیت و عملیات، رشد و بازار، تحلیل پیشرفته و فهرست داده‌ها/کاوشگر.
+
+## نمودارهای پیشرفته برگرفته از Hadadi
+۱۸ نمودار منتخب حفظ شده‌اند: heatmap، box، control chart، scatter، correlation matrix، histogram، Pareto، treemap و sunburst. تحلیل‌های آماری و پیش‌بینی‌ها اکتشافی‌اند و نباید به‌عنوان رابطه علّی یا تضمین عملیاتی تفسیر شوند.
+
+## React و ساختار رابط
+- React 18 + TypeScript + Vite
+- Tailwind CSS و ساختار سازگار با shadcn/ui
+- `src/components/ui/peak-chart.tsx`: نمودار Canvas واکنش‌گرا با hover، انیمیشن و بازه‌های Weekly / Monthly / Yearly؛ داده‌اش مستقیماً از سری واقعی DailyActivity می‌آید. این بازه‌ها به‌ترتیب ۷، ۳۰ و ۳۶۵ مشاهده آخر را نشان می‌دهند.
+- `src/components/LegacyDashboard.tsx`: لایه سازگاری React برای نگه‌داشتن تمام ماژول‌ها و محاسبات موجود در حین انتقال تدریجی آن‌ها به کامپوننت‌های مستقل. این لایه از iframe استفاده نمی‌کند.
+- `src/styles/legacy.css`: استایل اصلی و تم فعلی داشبورد
+- `public/legacy-dashboard.js`: موتور فعلی تحلیل و نمودارهای موجود
+- `public/advanced.json`: تعریف ۱۸ نمودار پیشرفته
+
+## اجرای محلی
 ```bash
 npm install
 npm run dev
-```
-## ساخت
+``
+
+## ساخت production
 ```bash
 npm run build
 npm run preview
-```
-## ساختار
-- src/App.tsx: ریشه React
-- src/components/LegacyDashboard.tsx: راه‌اندازی داشبورد در چرخه عمر React
-- src/components/ui/peak-chart.tsx: نمودار Canvas با Weekly / Monthly / Yearly
-- src/lib/utils.ts: تابع cn سازگار با الگوی shadcn/ui
-- src/styles/legacy.css: استایل موجود
-- public/legacy-dashboard.js: منطق فعلی تحلیل و نمودارها
-- public/data.json.gz و public/advanced.json: داده و پیکربندی نمودارها
+``
 
-## داده و حریم خصوصی
-فایل داده بسته‌بندی‌شده فعلی حفظ می‌شود. فایل خام Data.zip به مسیر عمومی منتقل نمی‌شود؛ فقط داده‌های پاک‌سازی‌شده و بسته‌بندی‌شده باید منتشر شوند.
-
-## زیرساخت
-Docker از build چندمرحله‌ای Node/Vite و Nginx استفاده می‌کند. سرویس روی پورت 8080 و health check در /healthz باقی می‌ماند.
+## استقرار
+Docker از build چندمرحله‌ای Node/Vite و Nginx استفاده می‌کند. سرویس روی پورت 8080 گوش می‌دهد و health check در `/healthz` حفظ شده است. فایل‌های داده در زمان build به پوشه public منتقل می‌شوند.
