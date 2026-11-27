@@ -39,7 +39,8 @@ const jalaliLabel = (date: string) => {
     ? `${digits(day)} ${months[month - 1]}`
     : date.replace(/\d/g, (digit) => "۰۱۲۳۴۵۶۷۸۹"[Number(digit)]);
 };
-const colorFor = (index: number) => `var(--chart-${(index % 8) + 1}, var(--primary))`;
+const chartPalette = ["#0EA5E9", "#F97316", "#22C55E", "#A855F7", "#EAB308", "#EC4899", "#14B8A6", "#EF4444"];
+const colorFor = (index: number) => chartPalette[index % chartPalette.length];
 
 export function Sparkline({
   series,
@@ -78,10 +79,13 @@ export function Sparkline({
   const min = minValue - range;
   const max = maxValue + range;
   const padding = 9;
-  const plotWidth = Math.max(1, width - padding * 2);
+  const rightEdge = Math.max(padding + 1, width - 48);
+  const plotWidth = Math.max(1, rightEdge - padding);
   const xAt = (index: number) => dates.length <= 1
-    ? width - padding
-    : width - padding - (index / (dates.length - 1)) * plotWidth;
+    ? rightEdge
+    : rightEdge - (index / (dates.length - 1)) * plotWidth;
+  const tickValues = Array.from({ length: 5 }, (_, index) => max - ((max - min) * index) / 4);
+  const tickLabel = (value: number) => compactNumber(value);
   const yAt = (value: number) => height - 12 - ((value - min) / Math.max(1e-9, max - min)) * (height - 24);
   const activeDate = activeIndex === null ? null : dates[activeIndex];
 
@@ -174,6 +178,17 @@ export function Sparkline({
             onPointerLeave={() => setActiveIndex(dates.length - 1)}
             className="block max-w-full touch-pan-y overflow-visible rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
+            <g aria-hidden="true">
+              {tickValues.map((value, index) => {
+                const y = yAt(value);
+                return (
+                  <g key={index}>
+                    <line x1={padding} x2={rightEdge} y1={y} y2={y} stroke="var(--border)" strokeOpacity="0.72" strokeDasharray={index === 4 ? "0" : "3 4"} />
+                    <text x={width - 3} y={y + 3.5} textAnchor="end" fontSize="9" fill="var(--muted-foreground)">{tickLabel(value)}</text>
+                  </g>
+                );
+              })}
+            </g>
             {visibleSeries.map((item, index) => {
               const pointMap = new Map(item.points.map((point) => [point.date, point.value]));
               let path = "";
