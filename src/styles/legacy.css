@@ -330,3 +330,53 @@ td,th{max-width:280px;overflow-wrap:anywhere}
 @media(prefers-reduced-motion:reduce){
  .reveal-ready,.reveal-ready.is-visible{opacity:1;transform:none;transition:none}
 }
+
+
+/* Module hub: match the dashboard's dark emerald glass theme */
+.module-hub{position:relative}
+.module-hub-head{color:var(--ink)}
+.module-hub-head h2{color:#e5f1e8!important}
+.module-hub-head p{color:#9aaca0!important}
+.module-cards{gap:12px}
+.module-card{
+ --module-accent:#64d98c!important;
+ --module-soft:rgba(48,132,72,.19)!important;
+ position:relative;
+ isolation:isolate;
+ overflow:hidden;
+ background:linear-gradient(145deg,rgba(23,43,29,.97),rgba(14,26,19,.98))!important;
+ border:1px solid rgba(115,174,128,.20)!important;
+ color:#e4eee7!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.045),0 10px 26px rgba(0,0,0,.18)!important;
+}
+.module-card:before{
+ content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+ background:radial-gradient(circle at 100% 0,rgba(66,190,103,.13),transparent 42%);
+}
+.module-card:hover{
+ transform:translateY(-3px);
+ background:linear-gradient(145deg,rgba(27,53,35,.99),rgba(15,31,21,.99))!important;
+ border-color:rgba(105,220,139,.42)!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 16px 34px rgba(0,0,0,.28)!important;
+}
+.module-card:focus-visible{outline:2px solid #68d88c;outline-offset:3px}
+.module-card-head{color:#a5b9aa!important}
+.module-card-date{background:rgba(255,255,255,.045)!important;border-color:rgba(168,207,177,.13)!important;color:#a8bcae!important}
+.module-card-go{background:rgba(61,163,91,.18)!important;color:#8ce5a9!important;border:1px solid rgba(111,213,139,.14)}
+.module-card-title{color:#e5f1e8!important}
+.module-card-desc{color:#9aaca0!important}
+.module-data strong{color:#e0eee4!important}
+.module-data span{color:#91a597!important}
+.module-progress{background:#263b2c!important}
+.module-progress i{background:linear-gradient(90deg,#20a957,#79e39b)!important}
+.module-card-foot{color:#91a597!important}
+.module-card-foot b{color:#82e29e!important}
+.module-card-placeholder{
+ background:rgba(17,29,21,.94)!important;
+ border:1px dashed #385640!important;
+ color:#9aaca0!important;
+}
+@media(max-width:620px){
+ .module-cards{gap:9px}
+ .module-card{background:linear-gradient(145deg,rgba(23,43,29,.98),rgba(14,26,19,.99))!important}
+}
