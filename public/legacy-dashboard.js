@@ -215,15 +215,16 @@ function drawAdvancedChart(div,chart){
  const xLabels=dates=>{let out='',n=Math.min(6,dates.length);for(let i=0;i<n;i++){let j=Math.round(i*(dates.length-1)/Math.max(1,n-1));out+=txt(L+j*iw/Math.max(1,dates.length-1),H-22,faDate(dates[j].slice(5)),'middle',10,C.muted)}return out};
  if(kind==='box'||kind==='histogram'){
   const values=valid.map(s=>s.points.map(p=>p[1])).flat(),mn=Math.min(...values),mx=Math.max(...values);
-  const f=frame(mn,mx,chart.unit);body+=f.g;
+  const f=frame(mn,mx,chart.unit);if(kind==='box')body+=f.g;
   if(kind==='box'){
    const q=a=>{let b=a.slice().sort((x,y)=>x-y),p=(b.length-1)*a;return b[Math.floor(p)]*(1-(p%1))+b[Math.ceil(p)]*(p%1)};
    valid.forEach((s,i)=>{let a=s.points.map(p=>p[1]).sort((x,y)=>x-y);if(!a.length)return;const quant=p=>{let k=(a.length-1)*p,lo=Math.floor(k),hi=Math.ceil(k);return a[lo]*(hi-k)+a[hi]*(k-lo)};let q1=quant(.25),med=quant(.5),q3=quant(.75),iqr=q3-q1,low=Math.max(a[0],q1-1.5*iqr),high=Math.min(a[a.length-1],q3+1.5*iqr),x=L+(i+.5)*iw/valid.length,bw=Math.min(88,iw/valid.length*.48),col=colors[i%colors.length];body+=line(x,f.y(low),x,f.y(high),col)+line(x-bw/3,f.y(low),x+bw/3,f.y(low),col)+line(x-bw/3,f.y(high),x+bw/3,f.y(high),col)+rect(x-bw/2,f.y(q3),bw,Math.max(2,f.y(q1)-f.y(q3)),col,5)+line(x-bw/2,f.y(med),x+bw/2,f.y(med),C.surface,'')+txt(x,H-24,s.name,'middle',11,C.ink);a.forEach(v=>{if(v<low||v>high)body+=circle(x,f.y(v),3,C.rose,fa(v))})});
    note='نمودار جعبه‌ای: میانه، چارک‌ها و نقاط پرت بر اساس مشاهدات همین بازه.';
   }else{
    const bins=12,step=(mx-mn||1)/bins,counts=Array(bins).fill(0);values.forEach(v=>counts[Math.min(bins-1,Math.floor((v-mn)/step))]++);const max=Math.max(1,...counts);
-   counts.forEach((n,i)=>{let bw=iw/bins-4,x=L+i*iw/bins,y=T+ih-n/max*ih;body+=rect(x,y,bw,n/max*ih,colors[0],4)+txt(x+bw/2,H-24,short(mn+i*step),'middle',9,C.muted)});
-   body+=txt(W/2,15,'فراوانی مشاهدات','middle',11,C.ink,700);note='هیستوگرام توزیع مقادیر؛ هر ستون تعداد مشاهدات در یک بازه مقداری را نشان می‌دهد.';
+   for(let i=0;i<5;i++){let v=max*(1-i/4),y=T+ih*i/4;body+=line(L,y,W-R,y,C.line)+txt(W-R+12,y+4,fa(Math.round(v)),'start',10,C.muted)}
+   counts.forEach((n,i)=>{let bw=iw/bins-4,x=L+i*iw/bins,y=T+ih-n/max*ih;body+=rect(x,y,bw,n/max*ih,colors[0],4)+txt(x+bw/2,H-24,fa(mn+i*step),'middle',9,C.muted)});
+   body+=txt(W-R,15,'فراوانی','end',11,C.ink,700)+txt(W/2,H-5,'بازه مقدار · '+(chart.unit||''),'middle',10,C.muted);note='هیستوگرام توزیع مقادیر؛ محور افقی بازه مقدار و محور عمودی فراوانی مشاهدات را نشان می‌دهد.';
   }
  }else if(kind==='scatter'){
   let a=valid[0]?.points||[],b=valid[1]?.points||[],map=new Map(b),pairs=a.filter(p=>map.has(p[0])).map(p=>[p[0],p[1],map.get(p[0])[1]]);
@@ -271,9 +272,9 @@ function drawAdvancedChart(div,chart){
    body+=circle(cx,cy,r0-3,C.surface)+txt(cx,cy+4,'دلایل تماس','middle',12,C.ink,800);
    note='سان‌برست دوحلقه‌ای؛ حلقه داخلی سطح اول و حلقه بیرونی زیرگروه‌های همان دسته را نشان می‌دهد.';
   }else{
-   let x=L,y=T,rowH=ih/rows.length;
-   rows.forEach((r,i)=>{let w=iw*r.v/Math.max(1,total);body+=rect(x,y,Math.max(2,w-3),rowH-4,colors[i%colors.length],5)+txt(x+w/2,y+rowH*.58,r.name.slice(0,22),'middle',10,'#fff',700)+ '<title>'+escSvg(r.name+' · '+fa(r.v))+'</title>';x+=w;y+=rowH;if(x>L+iw-1){x=L}});
-   note='نمای ترکیب دسته‌ها بر اساس مجموع مقدار ثبت‌شده در بازه؛ مقادیر کوچک‌تر از ۵ برای خوانایی کنار گذاشته شده‌اند.';
+   const groups=new Map();rows.forEach(r=>{let p=r.name.split(' / ')[0];if(!groups.has(p))groups.set(p,[]);groups.get(p).push(r)});
+   let gx=L,gi=0;for(const [parent,children] of groups){let sum=children.reduce((u,r)=>u+r.v,0),gw=iw*sum/Math.max(1,total),col=colors[gi%colors.length];body+=rect(gx,T,Math.max(2,gw-3),ih,'color-mix(in srgb, '+col+' 12%, '+C.surface+')',6,col);body+=txt(gx+gw/2,T+15,parent.slice(0,18),'middle',10,C.ink,800);let gy=T+24,available=ih-28;children.forEach((r,ci)=>{let hh=available*r.v/Math.max(1,sum);body+=rect(gx+4,gy,Math.max(2,gw-11),Math.max(2,hh-3),col,4)+txt(gx+gw/2,gy+Math.max(12,hh/2),r.name.split(' / ').slice(1).join(' / ').slice(0,20),'middle',9,'#fff',700)+'<title>'+escSvg(r.name+' · '+fa(r.v))+'</title>';gy+=hh});gx+=gw;gi++}
+   note='نقشه درختی سلسله‌مراتبی؛ عرض هر گروه متناسب با مجموع تماس‌ها و ارتفاع هر زیرگروه متناسب با سهم آن است.';
   }
  }else if(kind==='correlation'||kind==='network'){
   const diffs=valid.map(s=>s.points.slice(1).map((p,i)=>[p[0],p[1]-s.points[i][1]]));
