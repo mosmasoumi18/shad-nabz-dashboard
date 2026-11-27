@@ -93,7 +93,7 @@ function renderAnalyticsBento(){
   $('abRevenue').innerHTML=`<div class="ab-card-top"><div class="ab-eyebrow">درآمد ثبت‌شده همه سرویس‌ها</div><span class="ab-source">Traffic_V2 · تومان</span></div><div class="ab-value">${rv?compact(rv.value):'—'} <small>تومان</small></div><div class="ab-meta"><span>آخرین تاریخ: ${fmtDate(rv?.date||'—')}</span>${shadChangeMarkup(rd)}</div>${sparklineSlot('abRevenueSparkline')}`;
    mountSparkline('abRevenueSparkline',rvRows,'درآمد ثبت‌شده','تومان',88);
 
-  const activity=series('Messenger_statistics/DailyActivity','value_num');
+  const activity=(window.__shadRawSeries||series)('Messenger_statistics/DailyActivity','value_num');
   const login=series('Messenger_statistics/LoginUser','value_num');
   const msg=series('Messenger_statistics/NewMessage','value_num');
   const av=lastPoint(activity),ap=prevPoint(activity),ad=av&&ap?change(av.value,ap.value):null,lv=lastPoint(login),mv=lastPoint(msg);
