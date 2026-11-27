@@ -50,18 +50,17 @@ function getLastValue(k,valueCol,dateCol){let a=series(k,valueCol,dateCol);retur
 function latestLabelValues(k,dateNames=['date_key','date','shamsidate','shamsi_date'],labelNames=['label'],valueNames=['value_num']){let t=table(k);if(!t)return {date:'',rows:[]};let di=col(t,dateNames),li=col(t,labelNames),vi=col(t,valueNames);if(di<0||li<0||vi<0)return {date:'',rows:[]};let d=tableObservedCutoff(k)||t.rows.map(r=>normDate(r[di])).filter(Boolean).sort().pop()||'';return {date:d,rows:t.rows.filter(r=>normDate(r[di])===d).map(r=>({label:String(r[li]??''),value:num(r[vi])})).filter(x=>x.label&&x.value!==null)}}
 function drawLine(id,specs,unit='',forcePct=false){
  const el=$(id);if(!el)return;
+ const title=el.closest('.panel')?.querySelector('.panel-head h3')?.textContent?.trim()||'روند تغییرات';
+ const chartUnit=forcePct?'٪':unit||'';
  const allDates=[...new Set((specs||[]).flatMap(sp=>sp.points||[]).filter(p=>p&&p.date&&p.value!==null&&Number.isFinite(Number(p.value))).map(p=>normDate(p.date)))].sort();
  const limit=RANGE==='all'?null:Math.max(1,Number(RANGE)||30),dates=limit?allDates.slice(-limit):allDates;
- if(!dates.length){el.innerHTML='<div class="chart-empty">داده کافی برای رسم نمودار وجود ندارد.</div>';return}
  const dateSet=new Set(dates);
  const plotted=(specs||[]).map((sp,si)=>({
   id:id+'-'+si,
   name:sp.name||('سری '+N0.format(si+1)),
   points:(sp.points||[]).filter(p=>p&&p.date&&dateSet.has(normDate(p.date))&&p.value!==null&&Number.isFinite(Number(p.value))).map(p=>({date:normDate(p.date),value:Number(p.value)})).sort((a,b)=>a.date.localeCompare(b.date))
  })).filter(sp=>sp.points.length);
- if(!plotted.length){el.innerHTML='<div class="chart-empty">داده‌ای در این بازه وجود ندارد.</div>';return}
- const title=el.closest('.panel')?.querySelector('.panel-head h3')?.textContent?.trim()||'روند تغییرات';
- window.dispatchEvent(new CustomEvent('shad:sparkline-mount',{detail:{targetId:id,series:plotted,title,unit:forcePct?'٪':unit||''}}));
+ window.dispatchEvent(new CustomEvent('shad:sparkline-mount',{detail:{targetId:id,series:plotted,title,unit:chartUnit}}));
 }
 function drawBars(id,items,opts={}){
  let el=$(id);if(!el)return;
