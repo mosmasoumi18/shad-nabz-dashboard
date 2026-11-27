@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
+import { useEffect, useMemo, useRef, useState, useId, type KeyboardEvent, type PointerEvent } from "react";
 import { cn } from "@/lib/utils";
 
 export type SparklinePoint = { date: string; value: number };
@@ -51,6 +51,7 @@ export function Sparkline({
   showHeading = true,
 }: SparklineProps) {
   const hostRef = useRef<HTMLDivElement>(null);
+  const liveId = useId().replace(/:/g, "");
   const [width, setWidth] = useState(320);
   const [hidden, setHidden] = useState<string[]>([]);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
@@ -166,7 +167,7 @@ export function Sparkline({
             height={height}
             role="img"
             aria-label={ariaLabel}
-            aria-describedby="sparkline-active-value"
+            aria-describedby={liveId}
             tabIndex={0}
             onKeyDown={onKeyDown}
             onPointerMove={onPointerMove}
@@ -223,8 +224,8 @@ export function Sparkline({
       </div>
       {dates.length > 0 && (
         <div className="mt-1 flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
-          <span>{jalaliLabel(dates[dates.length - 1])}{(() => { const valuesAtEnd = visibleSeries.map((item) => item.points.find((point) => point.date === dates[dates.length - 1])?.value).filter((value): value is number => value !== undefined); return valuesAtEnd.length ? ` · ${compactNumber(valuesAtEnd[0])}` : ""; })()}</span>
           <span>{jalaliLabel(dates[0])}{(() => { const valuesAtStart = visibleSeries.map((item) => item.points.find((point) => point.date === dates[0])?.value).filter((value): value is number => value !== undefined); return valuesAtStart.length ? ` · ${compactNumber(valuesAtStart[0])}` : ""; })()}</span>
+          <span>{jalaliLabel(dates[dates.length - 1])}{(() => { const valuesAtEnd = visibleSeries.map((item) => item.points.find((point) => point.date === dates[dates.length - 1])?.value).filter((value): value is number => value !== undefined); return valuesAtEnd.length ? ` · ${compactNumber(valuesAtEnd[0])}` : ""; })()}</span>
         </div>
       )}
       <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1">
@@ -245,7 +246,7 @@ export function Sparkline({
           );
         })}
       </div>
-      <p id="sparkline-active-value" aria-live="polite" className="sr-only">
+      <p id={liveId} aria-live="polite" className="sr-only">
         {activeDate ? `${jalaliLabel(activeDate)}؛ ${activeRows.join("؛ ")}` : "مقدار فعال پاک شد."}
       </p>
       <table className="sr-only">
