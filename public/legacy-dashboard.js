@@ -114,7 +114,7 @@ function renderAnalyticsBento(){
   const monthTotals={};activity.forEach(p=>{let d=normDate(p.date),k=d.slice(0,7);if(/^\d{4}\/\d{2}$/.test(k))monthTotals[k]=(monthTotals[k]||0)+p.value});
   const months=Object.entries(monthTotals).sort((a,b)=>a[0].localeCompare(b[0])).slice(-12);
   const monthNames=['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'];
-  if(months.length){let vals=months.map(x=>x[1]),max=Math.max(...vals),min=Math.min(...vals),total=vals.reduce((a,b)=>a+b,0),avg=total/vals.length,peak=months[vals.indexOf(max)];let W=250,H=208,C=125,R=75,N=months.length;const xy=(v,i,r=R)=>{let a=-Math.PI/2+(i/N)*Math.PI*2,rr=r*(.28+.72*(v/(max||1)));return [C+Math.cos(a)*rr,C+Math.sin(a)*rr]};let polygon=vals.map((v,i)=>xy(v,i).map(n=>n.toFixed(1)).join(',')).join(' ');let rings=[.33,.66,1].map(q=>`<circle cx="${C}" cy="${C}" r="${R*q}" fill="none" stroke="#e4eee6" stroke-width="1"/>`).join('');let axes=months.map((m,i)=>{let a=-Math.PI/2+(i/N)*Math.PI*2,x=C+Math.cos(a)*R,y=C+Math.sin(a)*R,lx=C+Math.cos(a)*(R+16),ly=C+Math.sin(a)*(R+16);return `<line x1="${C}" y1="${C}" x2="${x}" y2="${y}" stroke="#e8f0e9"/><text x="${lx}" y="${ly}" text-anchor="middle" dominant-baseline="middle" font-size="9" fill="#72877a">${monthNames[Number(m[0].slice(5,7))-1]?.slice(0,2)||m[0].slice(5)}</text>`}).join('');let dots=vals.map((v,i)=>{let [x,y]=xy(v,i);return `<circle cx="${x}" cy="${y}" r="3.2" fill="#08a653" stroke="#fff" stroke-width="1.5"><title>${fmtDate(months[i][0])} · ${fmt(v)}</title></circle>`}).join('');$('abMonthly').innerHTML=`<div class="ab-card-top"><div class="ab-eyebrow">الگوی ماهانه فعالیت ثبت‌شده</div><span class="ab-source">DailyActivity · ۱۲ ماه اخیر</span></div><div class="ab-month-chart"><svg class="ab-radar" viewBox="0 0 ${W} ${H}" role="img" aria-label="تجمیع ماهانه فعالیت روزانه"><g>${rings}${axes}</g><polygon points="${polygon}" fill="rgba(8,166,83,.14)" stroke="#08a653" stroke-width="2.2" stroke-linejoin="round"/>${dots}<circle cx="${C}" cy="${C}" r="3" fill="#08a653"/></svg><div class="ab-radar-stats"><div class="ab-radar-stat"><span>میانگین ماهانه</span><b>${compact(avg)}</b></div><div class="ab-radar-stat"><span>بیشترین ماه</span><b>${monthNames[Number(peak[0].slice(5,7))-1]||peak[0]}</b></div><div class="ab-radar-stat"><span>مجموع ۱۲ ماه</span><b>${compact(total)}</b></div></div></div><div class="ab-meta"><span>جمع مقدارهای روزانه در هر ماه؛ نه تعداد کاربر یکتا</span></div>`}
+  if(months.length){let vals=months.map(x=>x[1]),max=Math.max(...vals),min=Math.min(...vals),total=vals.reduce((a,b)=>a+b,0),avg=total/vals.length,peak=months[vals.indexOf(max)];let W=250,H=208,C=125,R=75,N=months.length;const xy=(v,i,r=R)=>{let a=-Math.PI/2-(i/N)*Math.PI*2,rr=r*(.28+.72*(v/(max||1)));return [C+Math.cos(a)*rr,C+Math.sin(a)*rr]};let polygon=vals.map((v,i)=>xy(v,i).map(n=>n.toFixed(1)).join(',')).join(' ');let rings=[.33,.66,1].map(q=>`<circle cx="${C}" cy="${C}" r="${R*q}" fill="none" stroke="${themeColor('--border')}" stroke-width="1"/>`).join('');let axes=months.map((m,i)=>{let a=-Math.PI/2-(i/N)*Math.PI*2,x=C+Math.cos(a)*R,y=C+Math.sin(a)*R,lx=C+Math.cos(a)*(R+16),ly=C+Math.sin(a)*(R+16);return `<line x1="${C}" y1="${C}" x2="${x}" y2="${y}" stroke="${themeColor('--border')}"/><text x="${lx}" y="${ly}" text-anchor="middle" dominant-baseline="middle" font-size="9" fill="${themeColor('--muted-foreground','--muted')}">${monthNames[Number(m[0].slice(5,7))-1]?.slice(0,2)||m[0].slice(5)}</text>`}).join('');let dots=vals.map((v,i)=>{let [x,y]=xy(v,i);return `<circle cx="${x}" cy="${y}" r="3.2" fill="${themeColor('--chart-1')}" stroke="${themeColor('--surface')}" stroke-width="1.5"><title>${fmtDate(months[i][0])} · ${fmt(v)}</title></circle>`}).join('');$('abMonthly').innerHTML=`<div class="ab-card-top"><div class="ab-eyebrow">الگوی ماهانه فعالیت ثبت‌شده</div><span class="ab-source">DailyActivity · ۱۲ ماه اخیر</span></div><div class="ab-month-chart"><svg class="ab-radar" viewBox="0 0 ${W} ${H}" role="img" aria-label="تجمیع ماهانه فعالیت روزانه"><g>${rings}${axes}</g><polygon points="${polygon}" fill="${themeColor('--chart-1')}" fill-opacity=".14" stroke="${themeColor('--chart-1')}" stroke-width="2.2" stroke-linejoin="round"/>${dots}<circle cx="${C}" cy="${C}" r="3" fill="#08a653"/></svg><div class="ab-radar-stats"><div class="ab-radar-stat"><span>میانگین ماهانه</span><b>${compact(avg)}</b></div><div class="ab-radar-stat"><span>بیشترین ماه</span><b>${monthNames[Number(peak[0].slice(5,7))-1]||peak[0]}</b></div><div class="ab-radar-stat"><span>مجموع ۱۲ ماه</span><b>${compact(total)}</b></div></div></div><div class="ab-meta"><span>جمع مقدارهای روزانه در هر ماه؛ نه تعداد کاربر یکتا</span></div>`}
   else $('abMonthly').innerHTML='<div class="ab-loading">داده تاریخ‌دار کافی برای تجمیع ماهانه وجود ندارد.</div>';
 }
 function moduleCardSpec(){
@@ -187,32 +187,32 @@ function advCorr(a,b){if(a.length<30)return null;let x=advMean(a),y=advMean(b),s
 function drawAdvancedChart(div,chart){
  const ss=advSeries(chart),kind=chart.kind,W=900,H=340,L=72,R=28,T=26,B=64,iw=W-L-R,ih=H-T-B;
  const css=getComputedStyle(document.documentElement),C={
-  teal:css.getPropertyValue('--teal').trim()||'#087f78',
-  blue:css.getPropertyValue('--blue').trim()||'#3269b4',
-  amber:css.getPropertyValue('--amber').trim()||'#bf7d27',
-  rose:css.getPropertyValue('--rose').trim()||'#c45f69',
-  violet:css.getPropertyValue('--violet').trim()||'#7565b5',
-  ink:css.getPropertyValue('--ink').trim()||'#1c2b3a',
-  muted:css.getPropertyValue('--muted').trim()||'#6f7e8f',
-  line:css.getPropertyValue('--line').trim()||'#e5ebf1',
-  surface:css.getPropertyValue('--surface').trim()||'#fff'
+  teal:themeColor('--chart-1'),
+  blue:themeColor('--chart-2'),
+  amber:themeColor('--chart-3'),
+  rose:themeColor('--chart-5'),
+  violet:themeColor('--chart-4'),
+  ink:themeColor('--foreground','--ink'),
+  muted:themeColor('--muted-foreground','--muted'),
+  line:themeColor('--border'),
+  surface:themeColor('--surface')
  };
- const colors=[C.teal,C.blue,C.amber,C.violet,C.rose,'#258c69','#617b8c','#2ba6af'];
+ const colors=Array.from({length:8},(_,i)=>themeColor('--chart-'+(i+1)));
  const escSvg=v=>String(v??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
  const fa=v=>Number(v).toLocaleString('fa-IR',{maximumFractionDigits:1});
- const faDate=v=>String(v??'').replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);
+ const faDate=v=>jalaliTick(v);
  const short=v=>{let a=Math.abs(v);return a>=1e9?fa(v/1e9)+' میلیارد':a>=1e6?fa(v/1e6)+' میلیون':a>=1e3?fa(v/1e3)+' هزار':fa(v)};
  const valid=ss.map(s=>({...s,points:advValid(s).map(p=>[String(p[0]),Number(p[1])])}));
  if(!valid.some(s=>s.points.length)){div.innerHTML='<div class="chart-empty">در بازه انتخابی داده معتبر وجود ندارد.</div>';return}
  let note=chart.note||'تحلیل اکتشافی بر اساس داده‌های ثبت‌شده؛ همبستگی به معنی رابطه علّی نیست.';
  let body='',legend='',defs='<defs><linearGradient id="advArea" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="'+C.teal+'" stop-opacity=".20"/><stop offset="1" stop-color="'+C.teal+'" stop-opacity="0"/></linearGradient></defs>';
- const txt=(x,y,v,anchor='middle',size=12,color=C.muted,weight=500)=>'<text x="'+x+'" y="'+y+'" text-anchor="'+anchor+'" font-family="Vazirmatn,Tahoma,Arial,sans-serif" font-size="'+size+'" font-weight="'+weight+'" fill="'+color+'">'+escSvg(v)+'</text>';
+ const txt=(x,y,v,anchor='middle',size=12,color=C.muted,weight=500)=>'<text x="'+x+'" y="'+y+'" text-anchor="'+anchor+'" direction="rtl" font-family="Vazirmatn,Tahoma,Arial,sans-serif" font-size="'+size+'" font-weight="'+weight+'" fill="'+color+'">'+escSvg(v)+'</text>';
  const rect=(x,y,w,h,fill,rx=5,stroke='none')=>'<rect x="'+x+'" y="'+y+'" width="'+Math.max(0,w)+'" height="'+Math.max(0,h)+'" rx="'+rx+'" fill="'+fill+'" stroke="'+stroke+'"/>';
  const line=(x1,y1,x2,y2,stroke=C.line,dash='')=>'<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="'+stroke+'" stroke-width="1" '+(dash?'stroke-dasharray="'+dash+'"':'')+'/>';
  const circle=(x,y,r,fill,title='')=>'<circle cx="'+x+'" cy="'+y+'" r="'+r+'" fill="'+fill+'">'+(title?'<title>'+escSvg(title)+'</title>':'')+'</circle>';
  const frame=(min,max,unit)=>{if(max===min){max+=Math.abs(max)*.1||1;min-=Math.abs(min)*.1||1}const span=max-min;let g='';for(let i=0;i<5;i++){let v=max-span*i/4,y=T+ih*i/4;g+=line(L,y,W-R,y,C.line)+txt(W-R+12,y+4,short(v), 'start',10,C.muted)}g+=txt(W-R,T-8,unit||'', 'end',10,C.muted);return {g,x:i=>L+(i/(Math.max(1,frame.count-1)))*iw,y:v=>T+(max-v)/span*ih,min,max}};
  const wrap=()=>'<svg class="advanced-svg" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+escSvg(chart.title)+'" style="width:100%;height:100%;display:block;overflow:visible" preserveAspectRatio="xMidYMid meet">'+defs+body+'</svg>';
- const xLabels=dates=>{let out='',n=Math.min(6,dates.length);for(let i=0;i<n;i++){let j=Math.round(i*(dates.length-1)/Math.max(1,n-1));out+=txt(L+j*iw/Math.max(1,dates.length-1),H-22,faDate(dates[j].slice(5)),'middle',10,C.muted)}return out};
+ const xLabels=dates=>{let out='',n=Math.min(6,dates.length);for(let i=0;i<n;i++){let j=Math.round(i*(dates.length-1)/Math.max(1,n-1));out+=txt(W-R-j*iw/Math.max(1,dates.length-1),H-22,faDate(dates[j].slice(5)),'middle',10,C.muted)}return out};
  if(kind==='box'||kind==='histogram'){
   const values=valid.map(s=>s.points.map(p=>p[1])).flat(),mn=Math.min(...values),mx=Math.max(...values);
   const f=frame(mn,mx,chart.unit);if(kind==='box')body+=f.g;
@@ -230,24 +230,24 @@ function drawAdvancedChart(div,chart){
   let a=valid[0]?.points||[],b=valid[1]?.points||[],map=new Map(b),pairs=a.filter(p=>map.has(p[0])).map(p=>[p[0],p[1],map.get(p[0])[1]]);
   if(!pairs.length){div.innerHTML='<div class="chart-empty">داده‌ی هم‌تاریخ کافی برای مقایسه وجود ندارد.</div>';return}
   let xs=pairs.map(p=>p[1]),ys=pairs.map(p=>p[2]),xmin=Math.min(...xs),xmax=Math.max(...xs),ymin=Math.min(...ys),ymax=Math.max(...ys);if(xmin===xmax)xmax++;if(ymin===ymax)ymax++;
-  const px=v=>L+(v-xmin)/(xmax-xmin)*iw,py=v=>T+(ymax-v)/(ymax-ymin)*ih;
-  for(let i=0;i<5;i++){let v=ymax-(ymax-ymin)*i/4,y=T+ih*i/4;body+=line(L,y,W-R,y)+txt(L-12,y+4,short(v),'end',10)}
+  const px=v=>W-R-(v-xmin)/(xmax-xmin)*iw,py=v=>T+(ymax-v)/(ymax-ymin)*ih;
+  for(let i=0;i<5;i++){let v=ymax-(ymax-ymin)*i/4,y=T+ih*i/4;body+=line(L,y,W-R,y)+txt(W-R+12,y+4,short(v),'start',10)}
   pairs.forEach(p=>body+=circle(px(p[1]),py(p[2]),4,colors[0],p[0]+' · '+fa(p[1])+' / '+fa(p[2])));
   body+=txt(W/2,H-12,valid[0].name+' · '+(chart.unit||''),'middle',11,C.ink)+txt(20,H/2,valid[1].name,'middle',11,C.ink);
   note='تعداد جفت‌های هم‌تاریخ: '+fa(pairs.length)+'؛ نقاط، دو شاخص را در تاریخ مشترک مقایسه می‌کنند و رابطه علّی را اثبات نمی‌کنند.';
  }else if(kind==='heatmap'){
   if(valid.length>1){
    const dates=[...new Set(valid.flatMap(s=>s.points.map(p=>p[0])))].sort(),cellW=iw/Math.max(1,dates.length),cellH=Math.min(38,ih/valid.length);
-   valid.forEach((s,ri)=>{let m=new Map(s.points);body+=txt(L-10,T+ri*cellH+cellH*.65,s.name,'end',10,C.ink);dates.forEach((d,ci)=>{let v=m.get(d)?.[1];if(v===undefined)return;let all=valid.flatMap(x=>x.points.map(p=>p[1])),lo=Math.min(...all),hi=Math.max(...all),alpha=.18+.82*(v-lo)/(hi-lo||1);body+=rect(L+ci*cellW,T+ri*cellH,Math.max(1,cellW-2),cellH-2,'color-mix(in srgb, '+C.teal+' '+(alpha*100)+'%, '+C.surface+')',3)+ '<title>'+escSvg(d+' · '+fa(v))+'</title>'})});
+   valid.forEach((s,ri)=>{let m=new Map(s.points);body+=txt(W-R+10,T+ri*cellH+cellH*.65,s.name,'start',10,C.ink);dates.forEach((d,ci)=>{let v=m.get(d)?.[1];if(v===undefined)return;let all=valid.flatMap(x=>x.points.map(p=>p[1])),lo=Math.min(...all),hi=Math.max(...all),alpha=.18+.82*(v-lo)/(hi-lo||1);body+=rect(W-R-(ci+1)*cellW,T+ri*cellH,Math.max(1,cellW-2),cellH-2,'color-mix(in srgb, '+C.teal+' '+(alpha*100)+'%, '+C.surface+')',3)+ '<title>'+escSvg(d+' · '+fa(v))+'</title>'})});
    body+=txt(W/2,H-10,'تاریخ جلالی','middle',10);
   }else{
    let pts=valid[0].points,months=[...new Set(pts.map(p=>p[0].slice(0,7)))].sort(),m=new Map(pts),max=Math.max(1,...pts.map(p=>p[1])),cellW=iw/31,cellH=Math.min(40,ih/Math.max(1,months.length));
-   months.forEach((mon,ri)=>{body+=txt(L-10,T+ri*cellH+cellH*.65,faDate(mon),'end',10,C.ink);for(let d=1;d<=31;d++){let key=mon+'/'+String(d).padStart(2,'0'),v=m.get(key)?.[1];if(v===undefined){key=mon+'-'+String(d).padStart(2,'0');v=m.get(key)?.[1]}if(v===undefined)continue;let opacity=.14+.86*v/max;body+=rect(L+(d-1)*cellW,T+ri*cellH,cellW-2,cellH-3,'color-mix(in srgb, '+C.teal+' '+(opacity*100)+'%, '+C.surface+')',3)+'<title>'+escSvg(key+' · '+fa(v))+'</title>'}});
+   months.forEach((mon,ri)=>{body+=txt(W-R+10,T+ri*cellH+cellH*.65,faDate(mon),'start',10,C.ink);for(let d=1;d<=31;d++){let key=mon+'/'+String(d).padStart(2,'0'),v=m.get(key)?.[1];if(v===undefined){key=mon+'-'+String(d).padStart(2,'0');v=m.get(key)?.[1]}if(v===undefined)continue;let opacity=.14+.86*v/max;body+=rect(W-R-d*cellW,T+ri*cellH,cellW-2,cellH-3,'color-mix(in srgb, '+C.teal+' '+(opacity*100)+'%, '+C.surface+')',3)+'<title>'+escSvg(key+' · '+fa(v))+'</title>'}});
    body+=txt(W/2,H-10,'روز ماه','middle',10);note='نقشه حرارتی تقویم شمسی؛ شدت رنگ مقدار ثبت‌شده و خانه خالی به معنی نبود رکورد است.';
   }
  }else if(kind==='control'||kind==='forecast'||kind==='line'||kind==='bar'){
   const dates=[...new Set(valid.flatMap(s=>s.points.map(p=>p[0])))].sort(),mapDates=new Set(dates),all=valid.flatMap(s=>s.points.map(p=>p[1])),min=Math.min(0,...all),max=Math.max(...all),f=frame(min,max,chart.unit);body+=f.g;
-  const x=d=>L+dates.indexOf(d)*iw/Math.max(1,dates.length-1),y=v=>T+(f.max-v)/(f.max-f.min)*ih;
+  const x=d=>W-R-dates.indexOf(d)*iw/Math.max(1,dates.length-1),y=v=>T+(f.max-v)/(f.max-f.min)*ih;
   valid.forEach((s,si)=>{let m=new Map(s.points),path='',drawing=false;dates.forEach(d=>{if(m.has(d)){path+=(drawing?' L ':'M ')+x(d)+' '+y(m.get(d)[1]);drawing=true}else drawing=false});if(kind==='bar'){s.points.forEach(p=>body+=rect(x(p[0])-Math.min(16,iw/dates.length*.32),y(p[1]),Math.min(32,iw/dates.length*.64),T+ih-y(p[1]),colors[si%colors.length],4))}else{body+='<path d="'+path+'" fill="none" stroke="'+colors[si%colors.length]+'" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>';s.points.forEach(p=>body+=circle(x(p[0]),y(p[1]),2.8,colors[si%colors.length],s.name+' · '+p[0]+' · '+fa(p[1]))) }});
   if(kind==='control'||kind==='forecast'){
    let a=valid[0].points,w=30,mid=[],upper=[],lower=[],out=[];
