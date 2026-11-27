@@ -197,7 +197,7 @@ function drawAdvancedChart(div,chart){
  const colors=[C.teal,C.blue,C.amber,C.violet,C.rose,'#258c69','#617b8c','#2ba6af'];
  const escSvg=v=>String(v??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
  const fa=v=>Number(v).toLocaleString('fa-IR',{maximumFractionDigits:1});
- const faDate=v=>String(v??'').replace(/\\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);
+ const faDate=v=>String(v??'').replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);
  const short=v=>{let a=Math.abs(v);return a>=1e9?fa(v/1e9)+' میلیارد':a>=1e6?fa(v/1e6)+' میلیون':a>=1e3?fa(v/1e3)+' هزار':fa(v)};
  const valid=ss.map(s=>({...s,points:advValid(s).map(p=>[String(p[0]),Number(p[1])])}));
  if(!valid.some(s=>s.points.length)){div.innerHTML='<div class="chart-empty">در بازه انتخابی داده معتبر وجود ندارد.</div>';return}
