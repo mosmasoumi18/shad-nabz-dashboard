@@ -207,11 +207,11 @@ function drawAdvancedChart(div,chart){
  if(!valid.some(s=>s.points.length)){div.innerHTML='<div class="chart-empty">در بازه انتخابی داده معتبر وجود ندارد.</div>';return}
  let note=chart.note||'تحلیل اکتشافی بر اساس داده‌های ثبت‌شده؛ همبستگی به معنی رابطه علّی نیست.';
  let body='',legend='',defs='<defs><linearGradient id="advArea" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="'+C.teal+'" stop-opacity=".20"/><stop offset="1" stop-color="'+C.teal+'" stop-opacity="0"/></linearGradient></defs>';
- const txt=(x,y,v,anchor='middle',size=12,color=C.muted,weight=500)=>'<text x="'+x+'" y="'+y+'" text-anchor="'+anchor+'" direction="rtl" font-family="Vazirmatn,Tahoma,Arial,sans-serif" font-size="'+size+'" font-weight="'+weight+'" fill="'+color+'">'+escSvg(v)+'</text>';
+ const txt=(x,y,v,anchor='middle',size=12,color=C.muted,weight=500,dir='rtl')=>'<text x="'+x+'" y="'+y+'" text-anchor="'+anchor+'" direction="'+dir+'" font-family="Vazirmatn,Tahoma,Arial,sans-serif" font-size="'+size+'" font-weight="'+weight+'" fill="'+color+'">'+escSvg(v)+'</text>';
  const rect=(x,y,w,h,fill,rx=5,stroke='none')=>'<rect x="'+x+'" y="'+y+'" width="'+Math.max(0,w)+'" height="'+Math.max(0,h)+'" rx="'+rx+'" fill="'+fill+'" stroke="'+stroke+'"/>';
  const line=(x1,y1,x2,y2,stroke=C.line,dash='')=>'<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="'+stroke+'" stroke-width="1" '+(dash?'stroke-dasharray="'+dash+'"':'')+'/>';
  const circle=(x,y,r,fill,title='')=>'<circle cx="'+x+'" cy="'+y+'" r="'+r+'" fill="'+fill+'">'+(title?'<title>'+escSvg(title)+'</title>':'')+'</circle>';
- const frame=(min,max,unit)=>{if(max===min){max+=Math.abs(max)*.1||1;min-=Math.abs(min)*.1||1}const span=max-min;let g='';for(let i=0;i<5;i++){let v=max-span*i/4,y=T+ih*i/4;g+=line(L,y,W-R,y,C.line)+txt(W-8,y+4,short(v), 'end',10,C.muted)}g+=txt(W-R,T-8,unit||'', 'end',10,C.muted);return {g,x:i=>L+(i/(Math.max(1,frame.count-1)))*iw,y:v=>T+(max-v)/span*ih,min,max}};
+ const frame=(min,max,unit)=>{if(max===min){max+=Math.abs(max)*.1||1;min-=Math.abs(min)*.1||1}const span=max-min;let g='';for(let i=0;i<5;i++){let v=max-span*i/4,y=T+ih*i/4;g+=line(L,y,W-R,y,C.line)+txt(W-8,y+4,short(v), 'end',10,C.muted,500,'ltr')}g+=txt(W-R,T-8,unit||'', 'end',10,C.muted);return {g,x:i=>L+(i/(Math.max(1,frame.count-1)))*iw,y:v=>T+(max-v)/span*ih,min,max}};
  const wrap=()=>'<svg class="advanced-svg" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+escSvg(chart.title)+'" direction="rtl" style="width:100%;height:100%;display:block;overflow:hidden" preserveAspectRatio="xMidYMid meet">'+defs+body+'</svg>';
  const xLabels=dates=>{let out='',n=Math.min(6,dates.length);for(let i=0;i<n;i++){let j=Math.round(i*(dates.length-1)/Math.max(1,n-1));out+=txt(W-R-j*iw/Math.max(1,dates.length-1),H-22,faDate(dates[j]),'middle',10,C.muted)}return out};
  if(kind==='box'||kind==='histogram'){
@@ -223,7 +223,7 @@ function drawAdvancedChart(div,chart){
    note='نمودار جعبه‌ای: میانه، چارک‌ها و نقاط پرت بر اساس مشاهدات همین بازه.';
   }else{
    const bins=12,step=(mx-mn||1)/bins,counts=Array(bins).fill(0);values.forEach(v=>counts[Math.min(bins-1,Math.floor((v-mn)/step))]++);const max=Math.max(1,...counts);
-   for(let i=0;i<5;i++){let v=max*(1-i/4),y=T+ih*i/4;body+=line(L,y,W-R,y,C.line)+txt(W-8,y+4,fa(Math.round(v)),'end',10,C.muted)}
+   for(let i=0;i<5;i++){let v=max*(1-i/4),y=T+ih*i/4;body+=line(L,y,W-R,y,C.line)+txt(W-8,y+4,fa(Math.round(v)),'end',10,C.muted,500,'ltr')}
    counts.forEach((n,i)=>{let bw=iw/bins-4,x=L+i*iw/bins,y=T+ih-n/max*ih;body+=rect(x,y,bw,n/max*ih,colors[0],4)+txt(x+bw/2,H-24,fa(mn+i*step),'middle',9,C.muted)});
    body+=txt(W-R,15,'فراوانی','end',11,C.ink,700)+txt(W/2,H-5,'بازه مقدار · '+(chart.unit||''),'middle',10,C.muted);note='هیستوگرام توزیع مقادیر؛ محور افقی بازه مقدار و محور عمودی فراوانی مشاهدات را نشان می‌دهد.';
   }
@@ -232,7 +232,7 @@ function drawAdvancedChart(div,chart){
   if(!pairs.length){div.innerHTML='<div class="chart-empty">داده‌ی هم‌تاریخ کافی برای مقایسه وجود ندارد.</div>';return}
   let xs=pairs.map(p=>p[1]),ys=pairs.map(p=>p[2]),xmin=Math.min(...xs),xmax=Math.max(...xs),ymin=Math.min(...ys),ymax=Math.max(...ys);if(xmin===xmax)xmax++;if(ymin===ymax)ymax++;
   const px=v=>W-R-(v-xmin)/(xmax-xmin)*iw,py=v=>T+(ymax-v)/(ymax-ymin)*ih;
-  for(let i=0;i<5;i++){let v=ymax-(ymax-ymin)*i/4,y=T+ih*i/4;body+=line(L,y,W-R,y)+txt(W-8,y+4,short(v),'end',10)}
+  for(let i=0;i<5;i++){let v=ymax-(ymax-ymin)*i/4,y=T+ih*i/4;body+=line(L,y,W-R,y)+txt(W-8,y+4,short(v),'end',10,C.muted,500,'ltr')}
   pairs.forEach(p=>body+=circle(px(p[1]),py(p[2]),4,colors[0],jalaliTick(p[0])+' · '+fa(p[1])+' / '+fa(p[2])));
   body+=txt(W/2,H-12,valid[0].name+' · '+(chart.unit||''),'middle',11,C.ink)+txt(20,H/2,valid[1].name,'middle',11,C.ink);
   note='تعداد جفت‌های هم‌تاریخ: '+fa(pairs.length)+'؛ نقاط، دو شاخص را در تاریخ مشترک مقایسه می‌کنند و رابطه علّی را اثبات نمی‌کنند.';
@@ -263,7 +263,7 @@ function drawAdvancedChart(div,chart){
   if(kind==='pareto'){
    let max=Math.max(...rows.map(r=>r.v)),acc=0,points=[];
    rows.forEach((r,i)=>{let bw=iw/rows.length-8,x=L+i*iw/rows.length,h=r.v/max*ih,y=T+ih-h;body+=rect(x,y,bw,h,colors[i%colors.length],5)+txt(x+bw/2,H-28,r.name.slice(0,14),'middle',10,C.ink);acc+=r.v;points.push([x+bw/2,T+ih-(acc/total)*ih])});
-   for(let i=0;i<5;i++){let pct=100-i*25,y=T+ih*i/4;body+=line(L,y,W-R,y,C.line)+txt(L-10,y+4,short(max*(1-i/4)),'end',10,C.muted)+txt(W-8,y+4,fa(pct)+'٪','end',10,C.rose)}body+='<polyline points="'+points.map(p=>p.join(',')).join(' ')+'" fill="none" stroke="'+C.rose+'" stroke-width="3"/>';points.forEach((p,i)=>body+=circle(p[0],p[1],4,C.rose,fa(100*rows.slice(0,i+1).reduce((u,r)=>u+r.v,0)/total)+'٪ تجمعی'));body+=txt(L,H-5,'تعداد تماس','start',10,C.muted)+txt(W-R,H-5,'درصد تجمعی','end',10,C.rose);note='پارتو با مخرج کل گروه‌ها محاسبه شده؛ ستون‌ها ۱۲ گروه پرتکرار را نشان می‌دهند و درصد تجمعی سهم آن‌ها از کل تماس‌های ثبت‌شده است.';
+   for(let i=0;i<5;i++){let pct=100-i*25,y=T+ih*i/4;body+=line(L,y,W-R,y,C.line)+txt(L-10,y+4,short(max*(1-i/4)),'end',10,C.muted)+txt(W-8,y+4,fa(pct)+'٪','end',10,C.rose,500,'ltr')}body+='<polyline points="'+points.map(p=>p.join(',')).join(' ')+'" fill="none" stroke="'+C.rose+'" stroke-width="3"/>';points.forEach((p,i)=>body+=circle(p[0],p[1],4,C.rose,fa(100*rows.slice(0,i+1).reduce((u,r)=>u+r.v,0)/total)+'٪ تجمعی'));body+=txt(L,H-5,'تعداد تماس','start',10,C.muted)+txt(W-R,H-5,'درصد تجمعی','end',10,C.rose);note='پارتو با مخرج کل گروه‌ها محاسبه شده؛ ستون‌ها ۱۲ گروه پرتکرار را نشان می‌دهند و درصد تجمعی سهم آن‌ها از کل تماس‌های ثبت‌شده است.';
   }else if(kind==='sunburst'){
    const parents=new Map();rows.forEach(r=>{let p=r.name.split(' / ')[0];parents.set(p,(parents.get(p)||0)+r.v)});
    const cx=W/2,cy=H/2,r0=38,r1=94,r2=148,TAU=Math.PI*2;
